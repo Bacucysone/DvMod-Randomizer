@@ -21,8 +21,8 @@ This code is under the MIT license (basically, you can do whatever you want with
 Propositions are very much welcome, either as code modification (pull request) or as simple suggestions.
 You can contact me on this github (hopefully...) or on discord (join either the Derail Valley or the Archipelago server to find me)
 
-[Original Archipelago repository](https://github.com/ArchipelagoMW/Archipelago/) (basic framework, no modification apart from the addition of derail valley world)
-    [Archipelago multiclient](https://github.com/ArchipelagoMW/Archipelago.MultiClient.Net/) for .NET (Modified version, modifications are available on this repository)
-    [Websocket sharp](https://github.com/sta/websocket-sharp/) (Workaround for easier network communication, modified version)
+- [Original Archipelago repository](https://github.com/ArchipelagoMW/Archipelago/) (basic framework, no modification apart from the addition of derail valley world)
+- [Archipelago multiclient](https://github.com/ArchipelagoMW/Archipelago.MultiClient.Net/) for .NET (Modified version, modifications are available on this repository)
+- [Websocket sharp](https://github.com/sta/websocket-sharp/) (Workaround for easier network communication, modified version)
 
 I took inspiration from many different projects for different parts of the randomizer, including many existing Derail Valley mods (Passenger jobs, custom car loaders, Steam/Shunting start, to cite a few) and many Archipelago worlds (Outer wilds, Rogue Legacy, Castlevania DoS). Have fun!
