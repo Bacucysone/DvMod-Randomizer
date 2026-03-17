@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>12.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <RootNamespace>DvMod.Randomizer</RootNamespace>
+    <InformationalVersion>0.1.0</InformationalVersion>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Krafs.Publicizer" Version="2.3.0" PrivateAssets="all" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <Publicize Include="Assembly-CSharp" IncludeCompilerGeneratedMembers="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="0Harmony" />
+    <Reference Include="Unity.Mathematics" />
+    <Reference Include="Assembly-CSharp" />
+    <Reference Include="UnityEngine.InputLegacyModule" />
+    <Reference Include="DV.UI.dll" />
+    <Reference Include="DV.UIFramework.dll" />
+    <Reference Include="UnityEngine.UI" />
+    <Reference Include="Unity.TextMeshPro" />
+    <Reference Include="CommandTerminal" />
+    <Reference Include="DV.OriginShiftInfo" />
+    <Reference Include="DV.Utils" />
+    <Reference Include="DV.ThingTypes" />
+    <Reference Include="DV.Simulation" />
+    <Reference Include="UnityEngine.CoreModule" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Runtime" />
+    <Reference Include="DV.Inventory" />
+    <Reference Include="DV.Localization" />
+    <Reference Include="DV.UserManagement" />
+    <Reference Include="I2.Localization" />
+    <Reference Include="UnityModManager" />
+    <Reference Include="DV.CabControls.Spec" />
+    <Reference Include="DV.RailTrack" />
+    <Reference Include="WorldStreamer" />
+    <Reference Include="UnityEngine.ImageConversionModule" />
+  </ItemGroup>
+
+</Project>
