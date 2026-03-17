@@ -2,3 +2,4 @@
 	path = Archipelago
 	url = git@github.com:Bacucysone/Archipelago.git
 	ignore = untracked
+	update = merge
