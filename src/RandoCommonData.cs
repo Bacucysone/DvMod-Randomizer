@@ -10,6 +10,7 @@ using DV.Booklets;
 using DV.InventorySystem;
 using DV.LocoRestoration;
 using DV.Shops;
+using DV.Teleporters;
 using DV.ThingTypes;
 using DV.ThingTypes.TransitionHelpers;
 using DV.Utils;
@@ -445,7 +446,7 @@ namespace DvMod.Randomizer
             }
             return shop.Substring(5);
         }
-        private static List<string> UniqueItems = ["AmpLimiter",
+        private static readonly List<string> UniqueItems = ["AmpLimiter",
             "AntiWheelslipComputer",
             "AutomaticTrainStop",
             "BatteryCharger",

@@ -45,7 +45,7 @@ namespace DvMod.Randomizer
         int Victory, 
         int VictoryThreshold, 
         bool AlreadyWon,
-        bool IsFirstLoading) {
+        string TeleportToStation) {
         public bool[] StationLicenses = StationLicenses;
         public bool[] HiddenGarages = HiddenGarages;
         public bool[] JobLocations = JobLocations;
@@ -63,7 +63,7 @@ namespace DvMod.Randomizer
         public int VictoryThreshold = VictoryThreshold;
         public bool AlreadyWon = AlreadyWon;
         public int Version = Version;
-        public bool IsFirstLoading=IsFirstLoading;
+        public string TeleportToStation = TeleportToStation;
     }
 
     public class RandoPlayer
@@ -71,13 +71,13 @@ namespace DvMod.Randomizer
     #region Player fields, properties and constructor/destructor
         public Vector3 Position => PlayerManager.ActiveCamera.transform.position + PlayerManager.ActiveCamera.transform.forward * 0.5f;
         public Quaternion Rotation => PlayerManager.ActiveCamera.transform.rotation;
-        public RandoSaveData data {get; private set;}
-        public bool IsFirstLoading => data.IsFirstLoading;
-        private ConcurrentQueue<DV_APItem> waitingQueue = new();
+        public RandoSaveData Data {get; private set;}
+        public bool IsFirstLoading => !Data.TeleportToStation.IsNullOrEmpty();
+        private readonly ConcurrentQueue<DV_APItem> waitingQueue = new();
         public ArchipelagoSession Session;
         public event Action? UpdateEvent;
         public int ItemCount {
-            get => data.Index[0] + data.Index.Count() -1;
+            get => Data.Index[0] + Data.Index.Count() -1;
         }
         private void CheckData() {
             
@@ -87,7 +87,7 @@ namespace DvMod.Randomizer
             if (ItemCount < ItemNumberReceived) {
                 //We need to resync
                 Main.Log($"Re-syncing...");
-                for (int id = data.Index[0]+1 ; id < ItemNumberReceived; id++) {
+                for (int id = Data.Index[0]+1 ; id < ItemNumberReceived; id++) {
                     if (!HasAcquired(id)){
                         DV_APItem item = RandoCommonData.GetAPItem(id, Session.Items.AllItemsReceived[id]);
                         Main.Log("Queueing item "+item.DisplayName);
@@ -99,7 +99,7 @@ namespace DvMod.Randomizer
             SetLicenseData(GeneralLicenseType.DE2.ToV2(),5000);
             SetLicenseData(GeneralLicenseType.TrainDriver.ToV2(), 1000);
             SetLicenseData(JobLicenses.FreightHaul.ToV2(), 10000);
-            if (data.IsFirstLoading) {
+            if (IsFirstLoading) {
                 //All that we have to do the first time
             }
         }
@@ -117,17 +117,20 @@ namespace DvMod.Randomizer
 
         }
         public RandoPlayer(RandoSaveData saveData) {
-            data = saveData;
+            Data = saveData;
             CheckData();
             Session = ArchipelagoSessionFactory.CreateSession(Main.settings!.serverName, Main.settings!.Port);
-            Session.TryConnectAndLogin("Derail Valley", Main.settings!.User, ItemsHandlingFlags.AllItems, password: Main.settings!.Password);
+            if(!Session.TryConnectAndLogin("Derail Valley", Main.settings!.User, ItemsHandlingFlags.AllItems, password: Main.settings!.Password).Successful)
+                throw new TimeoutException();
+            SceneSwitcher.SceneRequested += (sc) => {if (sc == DVScenes.MainMenu) Main.player = null;};
+            UpdateEvent += ProcessItems;
             InitGame();
             SetupListeners(true);
-            SceneSwitcher.SceneRequested += (sc) => {if (sc == DVScenes.MainMenu) Main.player = null;};
         }
         ~RandoPlayer() {
             Session.Socket.DisconnectAsync();
             FinishGame();
+            UpdateEvent = null;
             SetupListeners(false);
         }
         internal void CallUpdate() {
@@ -139,25 +142,25 @@ namespace DvMod.Randomizer
             Session.Locations.CompleteLocationChecks(checkId);
         }
         public bool HasAcquired(int index) {
-            return index < data.Index[0] || data.Index.Contains(index);
+            return index < Data.Index[0] || Data.Index.Contains(index);
         }
         private void ReNormalize() {
-            while (data.Index.Count() > 1 && data.Index[0] == data.Index[1]-1) data.Index.Skip(1);
+            while (Data.Index.Count() > 1 && Data.Index[0] == Data.Index[1]-1) Data.Index.Skip(1);
         }
         public void AddItem(int index) {
             if (index == -1) return;
-            if (index < data.Index[0]) {
+            if (index < Data.Index[0]) {
                 throw new ArgumentException("Item was already acquired");
-            } else if (index == data.Index[0]+1){
-                data.Index[0] = index;
+            } else if (index == Data.Index[0]+1){
+                Data.Index[0] = index;
             } else {
-                int smaller = data.Index.Count(x => x <= index);
-                int[] FirstElements = data.Index.SubArray(0, smaller);
+                int smaller = Data.Index.Count(x => x <= index);
+                int[] FirstElements = Data.Index.SubArray(0, smaller);
                 if (FirstElements.Last() == index) {
                     throw new ArgumentException("Item was already acquired");
                 }
-                int[] LastElements = data.Index.SubArray(smaller, data.Index.Count()-smaller);
-                data.Index = [..FirstElements, index, .. LastElements];
+                int[] LastElements = Data.Index.SubArray(smaller, Data.Index.Count()-smaller);
+                Data.Index = [..FirstElements, index, .. LastElements];
             }
             ReNormalize();
         }
@@ -167,12 +170,11 @@ namespace DvMod.Randomizer
                 Session.Items.ItemReceived += ReceivedItem;
                 Session.MessageLog.OnMessageReceived += ReceivedMessage;
                 Session.Socket.ErrorReceived += ReceivedError;
-                UpdateEvent += ProcessItems;
+                
             } else {
                 Session.Items.ItemReceived -= ReceivedItem;
                 Session.MessageLog.OnMessageReceived -= ReceivedMessage;
                 Session.Socket.ErrorReceived -= ReceivedError;
-                UpdateEvent -= ProcessItems;
             }
         }
         private void ProcessItems() {
@@ -238,39 +240,39 @@ namespace DvMod.Randomizer
         #region Acquiring items
         public void BypassItem(DV_APItem item) => waitingQueue.Enqueue(item);
         public void CheckVictory() {
-            if (!data.AlreadyWon) {
+            if (!Data.AlreadyWon) {
                 int StationFinished = 0;
                 for (int i = 0; i < 20; i++) {
-                    if (data.Shunts[i] + data.Freights[i] >= data.VictoryThreshold) StationFinished++;
+                    if (Data.Shunts[i] + Data.Freights[i] >= Data.VictoryThreshold) StationFinished++;
                 }
-                if (StationFinished >= data.Victory) {
+                if (StationFinished >= Data.Victory) {
                     Terminal.Log(TerminalLogType.Warning, "You won the game!");
-                    data.AlreadyWon = true;
+                    Data.AlreadyWon = true;
                     Session.SetGoalAchieved();
                 }
             }
         }
         public int AddRelic(long id) {
-            return ++data.ReceivedRelics[id-RandoCommonData.AP_ID.RELIC];
+            return ++Data.ReceivedRelics[id-RandoCommonData.AP_ID.RELIC];
         }
         public void Check(GeneralLicenseType_v2 generalLicense) {
             int id = RandoCommonData.GetIDFromGeneralLicense(generalLicense);
-            data.GeneralLocations[id] = true;
+            Data.GeneralLocations[id] = true;
             UnlockCheck(0x660+id);
         }
         public void Check(JobLicenseType_v2 jobLicense) {
             int id = RandoCommonData.GetIDFromJobLicense(jobLicense);
-            data.JobLocations[id] = true;
+            Data.JobLocations[id] = true;
             UnlockCheck(0x670+id);
         }
         public void AcquireLicense(string Station) {
-            data.StationLicenses[RandoCommonData.GetOrderFromStationName(Station)] = true;
+            Data.StationLicenses[RandoCommonData.GetOrderFromStationName(Station)] = true;
         }
         public (long, int) FinishLoco(TrainCarType carType) {
             int locoIdx = RandoCommonData.GetOrderFromLocoType(carType);
-            if (data.LocoJobsThreshold[locoIdx] == data.LocoJobs[locoIdx]) return (-1L, -1);
-            data.LocoJobs[locoIdx]++;
-            return (0x600+locoIdx, data.LocoJobsThreshold[locoIdx] - data.LocoJobs[locoIdx]);
+            if (Data.LocoJobsThreshold[locoIdx] == Data.LocoJobs[locoIdx]) return (-1L, -1);
+            Data.LocoJobs[locoIdx]++;
+            return (0x600+locoIdx, Data.LocoJobsThreshold[locoIdx] - Data.LocoJobs[locoIdx]);
         }
         public (long, int) FinishShunting(string station) {
             if (station == "HMB")
@@ -278,11 +280,11 @@ namespace DvMod.Randomizer
             else if (station == "MFMB")
                 station = "MF";
             int StIdx = RandoCommonData.GetOrderFromStationName(station);
-            if (data.Shunts[StIdx] == data.ShuntThreshold[StIdx])
+            if (Data.Shunts[StIdx] == Data.ShuntThreshold[StIdx])
                 return (-1L, -1);
-            long checkId = 0x1000+StIdx*0x100+data.Shunts[StIdx]++;
+            long checkId = 0x1000+StIdx*0x100+Data.Shunts[StIdx]++;
             CheckVictory();
-            return (checkId, data.ShuntThreshold[StIdx] - data.Shunts[StIdx]);
+            return (checkId, Data.ShuntThreshold[StIdx] - Data.Shunts[StIdx]);
         }
         public (long, int) FinishTransport(string station) {
             if (station == "HMB")
@@ -290,11 +292,11 @@ namespace DvMod.Randomizer
             else if (station == "MFMB")
                 station = "MF";
             int StIdx = RandoCommonData.GetOrderFromStationName(station);
-            if (data.Freights[StIdx] == data.FreightThreshold[StIdx])
+            if (Data.Freights[StIdx] == Data.FreightThreshold[StIdx])
                 return (-1L, -1);
-            long checkId = 0x2500+StIdx*0x100+data.Freights[StIdx]++;
+            long checkId = 0x2500+StIdx*0x100+Data.Freights[StIdx]++;
             CheckVictory();
-            return (checkId, data.FreightThreshold[StIdx]-data.Freights[StIdx]);
+            return (checkId, Data.FreightThreshold[StIdx]-Data.Freights[StIdx]);
             
         }
 
@@ -306,47 +308,47 @@ namespace DvMod.Randomizer
             return map[id];
         }
         public bool HasChecked(Vector3 position) {
-            return HasChecked(RandoCommonData.GetIdFromLocoLocations, position, data.LocoLocations);
+            return HasChecked(RandoCommonData.GetIdFromLocoLocations, position, Data.LocoLocations);
         }
         public bool HasChecked(JobLicenseType_v2 jobLicense) {
-            return HasChecked(RandoCommonData.GetIDFromJobLicense, jobLicense,  data.JobLocations);
+            return HasChecked(RandoCommonData.GetIDFromJobLicense, jobLicense,  Data.JobLocations);
         }
         public bool HasChecked(GeneralLicenseType_v2 generalLicense) {
-            return HasChecked(RandoCommonData.GetIDFromGeneralLicense, generalLicense, data.GeneralLocations);
+            return HasChecked(RandoCommonData.GetIDFromGeneralLicense, generalLicense, Data.GeneralLocations);
         }
 
         public bool GotStationLicense(string name) {
             if (name == "HMB")
-                return data.StationLicenses[10]; // Harbour Military Bureau
+                return Data.StationLicenses[10]; // Harbour Military Bureau
             else if (name == "MFMB")
-                return data.StationLicenses[14]; // Machine factory Military Bureau
-            return data.StationLicenses[RandoCommonData.GetOrderFromStationName(name)];
+                return Data.StationLicenses[14]; // Machine factory Military Bureau
+            return Data.StationLicenses[RandoCommonData.GetOrderFromStationName(name)];
         }
 
         
     
 
         public bool GotRestorationLoco(long id) {
-            return data.ReceivedRelics[id-RandoCommonData.AP_ID.RELIC] > 0;
+            return Data.ReceivedRelics[id-RandoCommonData.AP_ID.RELIC] > 0;
         }
         public bool GotRestorationLoco(TrainCarType carType) {
-            return data.ReceivedRelics[RandoCommonData.GetOrderFromLocoType(carType)] > 0;
+            return Data.ReceivedRelics[RandoCommonData.GetOrderFromLocoType(carType)] > 0;
         }
         public bool CanFinishRelic(long id) {
-            return data.ReceivedRelics[id-RandoCommonData.AP_ID.RELIC] > 1;
+            return Data.ReceivedRelics[id-RandoCommonData.AP_ID.RELIC] > 1;
         }
         public bool CanFinishRelic(TrainCarType carType) {
-            return data.ReceivedRelics[RandoCommonData.GetOrderFromLocoType(carType)] == 2;
+            return Data.ReceivedRelics[RandoCommonData.GetOrderFromLocoType(carType)] == 2;
         }
     
         public bool HasUnlocked(GarageType_v2 g) {
             return g.v1 switch
             {
-                Garage.Bob => data.HiddenGarages[0],
-                Garage.Caboose => data.HiddenGarages[1],
-                Garage.DE6_Slug => data.HiddenGarages[2],
+                Garage.Bob => Data.HiddenGarages[0],
+                Garage.Caboose => Data.HiddenGarages[1],
+                Garage.DE6_Slug => Data.HiddenGarages[2],
                 Garage.Museum_FlatbedShort => SingletonBehaviour<LicenseManager>.Instance.IsGeneralLicenseAcquired(GeneralLicenseType.MuseumCitySouth.ToV2()),
-                Garage.DM1U => data.HiddenGarages[3],
+                Garage.DM1U => Data.HiddenGarages[3],
                 Garage.DE2_Relic or Garage.DM3_Relic or Garage.DH4_Relic or Garage.DE6_Relic or Garage.S060_Relic or Garage.S282_Relic => 
                     (RandoCommonData.GetState(g.garageCarLiveries[0].v1) == LocoRestorationController.RestorationState.S9_LocoServiced) 
                  || (RandoCommonData.GetState(g.garageCarLiveries[0].v1) == LocoRestorationController.RestorationState.S10_PaintJobDone),
@@ -355,13 +357,13 @@ namespace DvMod.Randomizer
         }
         
         public bool IsJobLicenseAcquired(JobLicenseType_v2 jobLicense) {
-            return data.JobLocations[RandoCommonData.GetIDFromJobLicense(jobLicense)];
+            return Data.JobLocations[RandoCommonData.GetIDFromJobLicense(jobLicense)];
         }
         public bool IsGeneralLicenseAcquired(GeneralLicenseType_v2 jobLicense) {
-            return data.GeneralLocations[RandoCommonData.GetIDFromGeneralLicense(jobLicense)];
+            return Data.GeneralLocations[RandoCommonData.GetIDFromGeneralLicense(jobLicense)];
         }
         public void UnlockGarage(long id) {
-            data.HiddenGarages[id-RandoCommonData.AP_ID.GARAGES] = true;
+            Data.HiddenGarages[id-RandoCommonData.AP_ID.GARAGES] = true;
         }
         
 

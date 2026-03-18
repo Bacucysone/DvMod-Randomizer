@@ -1,4 +1,5 @@
 using System;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Net.Mail;
@@ -24,11 +25,18 @@ namespace DvMod.Randomizer
                 return;
             }
             if (data.Version != 1) {
-                Main.Error($"Randomizer detected but versions do not match: Mod version = 1/Save version = {data.Version}");
+                Main.Error($"Randomizer detected but versions do not match: Mod version = 1/Save version = {data.Version}. Returning to main menu...");
                 MainMenu.GoBackToMainMenu();
                 return;
             }
-            Main.player ??= new(data);
+            try {
+                Main.player ??= new(data);
+            } catch (TimeoutException) {
+                Main.Error($"Could not connect to server. Returning to main menu...");
+                MainMenu.GoBackToMainMenu();
+                Main.player = null;
+                return;
+            }
         }
         [HarmonyPatch(nameof(StartGameData_FromSaveGame.ShouldCreateSaveGameAfterLoad))]
         public static void Postfix(ref bool __result) {
@@ -60,7 +68,19 @@ namespace DvMod.Randomizer
         [HarmonyPrefix, HarmonyPatch("UpdateInternalData")]
         public static void SavePrefix(SaveGameData ___data) {
             if (Main.player == null) return;
-            ___data.SetObject("RandoData", Main.player.data);
+            ___data.SetObject("RandoData", Main.player.Data);
+        }
+    }
+
+    [HarmonyPatch(typeof(StationFastTravelDestination), nameof(StationFastTravelDestination.GetClosestStationTeleporterWithPlayerLicensedLoco))]
+    public class StartTeleporterPatch {
+        public static void Postfix(ref StationFastTravelDestination __result) {
+            if (Main.player == null || !Main.player.IsFirstLoading) return;
+            __result = FastTravelDestination.ActiveDestinations
+                    .Where(dest => dest is StationFastTravelDestination)
+                    .Select(dest => (StationFastTravelDestination) dest)
+                    .Where(sdest => sdest.StationController.stationInfo.YardID.Equals(Main.player.Data.TeleportToStation))
+                    .Single();
         }
     }
     
