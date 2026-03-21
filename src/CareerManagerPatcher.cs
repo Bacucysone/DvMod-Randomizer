@@ -5,6 +5,7 @@ using DV.ThingTypes;
 using HarmonyLib;
 using TMPro;
 using DV.Localization;
+using Archipelago.MultiClient.Net.Models;
 
 namespace DvMod.Randomizer
 {
@@ -14,6 +15,7 @@ namespace DvMod.Randomizer
         public static void JobLicensesInfoPatch(CareerManagerLicensesScreen.LicenseEntry __instance) {
             if (Main.player == null) return;
             __instance.IsAcquired = Main.player.HasChecked(__instance.JobLicense);
+            __instance.IsObtainable |= __instance.JobLicense.v1 == JobLicenses.FreightHaul;
             if (!__instance.IsAcquired){
                 __instance.status.text = "$" + __instance.JobLicense.price.ToString("N2", LocalizationAPI.CC);
                 __instance.name.text += "?";
@@ -25,6 +27,7 @@ namespace DvMod.Randomizer
         public static void GeneralLicensesInfoPatch(CareerManagerLicensesScreen.LicenseEntry __instance) {
             if (Main.player == null) return;
             __instance.IsAcquired = Main.player.HasChecked(__instance.GeneralLicense);
+            __instance.IsObtainable |= __instance.GeneralLicense.v1 == GeneralLicenseType.TrainDriver || __instance.GeneralLicense.v1 == GeneralLicenseType.DE2;
             if (!__instance.IsAcquired){
                 __instance.status.text = "$" + __instance.GeneralLicense.price.ToString("N2", LocalizationAPI.CC);
                 __instance.name.text += "?";
@@ -43,18 +46,16 @@ namespace DvMod.Randomizer
             if (input != InputAction.Confirm) return true;
             if (!__instance.cashReg.Buy()) return true;
             float price;
-            long id;
+            ItemInfo item;
             if (___generalLicenseToBuy != null) {
-                Main.player.Check(___generalLicenseToBuy);
+                item = Main.player.UnlockCheck(RandoCommonData.GetIDFromGeneralLicense(___generalLicenseToBuy).Item1);
                 price = ___generalLicenseToBuy.price;
-                id = RandoCommonData.GetIDFromGeneralLicense(___generalLicenseToBuy);
             } else {
-                Main.player.Check(___jobLicenseToBuy);
+                item = Main.player.UnlockCheck(RandoCommonData.GetIDFromJobLicense(___jobLicenseToBuy).Item1);
                 price = ___jobLicenseToBuy.price;
-                id = RandoCommonData.GetIDFromJobLicense(___jobLicenseToBuy);
             }
             CashRegisterModule ToPrint = new GenericThingCashRegisterModule();
-            string itemName = Main.player.GetItemNameFromLocationId(id);
+            string itemName = item.ItemDisplayName;
             ToPrint.Data.unitsToBuy = 1;
             ToPrint.Data.pricePerUnit = price;
             ToPrint.Data.resourceName = itemName;

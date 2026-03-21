@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using CommandTerminal;
+using DV;
 using DV.Customization.Paint;
 using DV.Damage;
 using DV.LocoRestoration;
@@ -17,28 +18,14 @@ namespace DvMod.Randomizer {
         public static void Postfix() {
             if (Input.GetKeyDown("[0]")) {
                 Input.ResetInputAxes();
-            }
-            if (Main.player == null) return;
-            if (!WorldStreamingInit.IsLoaded) return;
-            Main.player.CallUpdate();
-            (Vector3 closestPoint, float Distance) = RandoCommonData.GetClosestLocoLocation(PlayerManager.PlayerTransform.AbsolutePosition());
-            if (Distance < 5f) {
-                if (!Main.player.HasChecked(closestPoint)) {
-                    string stationNeeded = RandoCommonData.GetStationFromLocoLocations(closestPoint);
-                    bool StationOk = Main.player.GotStationLicense(stationNeeded);
-                    bool MuseumOk = SingletonBehaviour<LicenseManager>.Instance.IsGeneralLicenseAcquired(GeneralLicenseType.MuseumCitySouth.ToV2());
-                    if (StationOk && MuseumOk) {
-                        Terminal.Log(TerminalLogType.Input, "You found something on the ground!");
-                        Main.player.NotifyPlayer("You found something on the ground!");
-                        Main.player.UnlockCheck(0x400+RandoCommonData.GetIdFromLocoLocations(closestPoint));
-                    } else if (StationOk && !MuseumOk)
-                        Main.player.NotifyPlayer("There is something here but you cannot take it... You need the museum license");
-                    else if (!StationOk && MuseumOk)
-                        Main.player.NotifyPlayer("There is something here but you cannot take it... You need the "+stationNeeded+" station license");
-                    else
-                        Main.player.NotifyPlayer("There is something here but you cannot take it... You need the museum license and the "+stationNeeded+" station license");
+                foreach(GeneralLicenseType_v2 license in Globals.G.Types.generalLicenses) {
+                    Main.Log($"License {license.v1.ToString()}, price {license.price}, GRequired {license.requiredGeneralLicense}, JRequired {license.requiredJobLicense}");
+                }
+                foreach(JobLicenseType_v2 license in Globals.G.Types.jobLicenses) {
+                    Main.Log($"License {license.v1.ToString()}, price {license.price}, GRequired {license.requiredGeneralLicense}, JRequired {license.requiredJobLicense}");
                 }
             }
+            Main.player?.CallUpdate();
         }
     }
 }

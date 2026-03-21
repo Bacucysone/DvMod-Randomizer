@@ -6,9 +6,11 @@ using System.Net.Mail;
 using Archipelago.MultiClient.Net;
 using DV.Teleporters;
 using DV.UI;
+using DV.Utils;
 using HarmonyLib;
 using I2.Loc;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 
 namespace DvMod.Randomizer
@@ -16,6 +18,12 @@ namespace DvMod.Randomizer
 
     [HarmonyPatch(typeof(StartGameData_FromSaveGame))]
     public class LoadingPatch {
+        private static void ExitWithMessage(string message) {
+            Main.Error(message);
+            MainMenu.GoBackToMainMenu();
+            SceneManager.UnloadSceneAsync((int)DVScenes.Game);
+            SingletonBehaviour<CoroutineManager>.Instance.StopCoroutine("LoadingRoutine");
+        }
 
         [HarmonyPostfix, HarmonyPatch("Initialize")]
         public static void SaveLoadingEndPatch(SaveGameData ___saveGameData) {
@@ -25,15 +33,13 @@ namespace DvMod.Randomizer
                 return;
             }
             if (data.Version != 1) {
-                Main.Error($"Randomizer detected but versions do not match: Mod version = 1/Save version = {data.Version}. Returning to main menu...");
-                MainMenu.GoBackToMainMenu();
+                ExitWithMessage($"Randomizer detected but versions do not match: Mod version = 1/Save version = {data.Version}. Returning to main menu...");
                 return;
             }
             try {
                 Main.player ??= new(data);
             } catch (TimeoutException) {
-                Main.Error($"Could not connect to server. Returning to main menu...");
-                MainMenu.GoBackToMainMenu();
+                ExitWithMessage($"Could not connect to server. Returning to main menu...");
                 Main.player = null;
                 return;
             }

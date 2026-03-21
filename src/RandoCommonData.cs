@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
 using Archipelago.MultiClient.Net.DataPackage;
 using Archipelago.MultiClient.Net.Enums;
 using Archipelago.MultiClient.Net.Models;
@@ -30,6 +31,8 @@ namespace DvMod.Randomizer
             public static long LOC_RELIC_PAINTED = 0x630;
             public static long LOC_GENERAL_LICENSES = 0x660;
             public static long LOC_JOB_LICENSES = 0x670;
+            public static long LOC_LOCO_RESTORATION = 0x400;
+            public static long LOC_LOCO_NB_JOBS = 0x600;
 
         }
         public static Sprite GetStationSprite(string name) {
@@ -148,6 +151,9 @@ namespace DvMod.Randomizer
     		new SpawnPoint("CME Coal Mine", 15552.81f, 181.5f, 11033.37f),
     		new SpawnPoint("MF Roundhouse West", 2267.709f, 159.193f, 10657.35f)
     	];
+        public static Vector3 GetInfoRestorationFromLocoLocationOrder(int idx) {
+            return AddressToLocoRestorationLocation[idx].Position;
+        }
         private static readonly string[] AddressToItemName = ["AmpLimiter",
             "AntiWheelslipComputer",
             "Ashtray",
@@ -394,7 +400,7 @@ namespace DvMod.Randomizer
             "VehicleCatalog",
             "wallet",
             "WirelessMUController"];
-        private static readonly Dictionary<JobLicenses, int> IdToJobLocations = new () {
+        private static readonly Dictionary<JobLicenses, int> JobLocationsToOrder = new () {
             {JobLicenses.Shunting, 0},
             {JobLicenses.LogisticalHaul, 1},
             {JobLicenses.Fragile, 2},
@@ -409,7 +415,8 @@ namespace DvMod.Randomizer
             {JobLicenses.Basic, -1},
             {JobLicenses.FreightHaul, 11}
         };
-        private static readonly Dictionary<GeneralLicenseType, int> IdToGeneralLocations = new () {
+        private static readonly Dictionary<GeneralLicenseType, int> GeneralLocationsToOrder = new () {
+            {GeneralLicenseType.DE2, 0},
             {GeneralLicenseType.DM3, 1},
             {GeneralLicenseType.DH4, 2},
             {GeneralLicenseType.DE6, 3},
@@ -421,7 +428,6 @@ namespace DvMod.Randomizer
             {GeneralLicenseType.ConcurrentJobs2, 9},
             {GeneralLicenseType.MuseumCitySouth, 10},
             {GeneralLicenseType.Dispatcher1, 11},
-            {GeneralLicenseType.DE2, 0},
             {GeneralLicenseType.TrainDriver, 12},
             {GeneralLicenseType.NotSet, -3}
         };
@@ -536,15 +542,38 @@ namespace DvMod.Randomizer
             "SunVisor",
             "UniversalControlStand"];
 
-        private static readonly JobLicenses[][] IdToJobLicense = [[JobLicenses.FreightHaul], [JobLicenses.LogisticalHaul], [JobLicenses.Shunting], [JobLicenses.Fragile], [JobLicenses.TrainLength1, JobLicenses.TrainLength2], [JobLicenses.Hazmat1, JobLicenses.Hazmat2, JobLicenses.Hazmat3], [JobLicenses.Military1, JobLicenses.Military2, JobLicenses.Military3]];
-        private static readonly GeneralLicenseType[][] IdToGeneralLicense = [[GeneralLicenseType.Dispatcher1], [GeneralLicenseType.TrainDriver], [GeneralLicenseType.DE2], [GeneralLicenseType.DM3], [GeneralLicenseType.DH4], [GeneralLicenseType.DE6], [GeneralLicenseType.S060], [GeneralLicenseType.SH282], [GeneralLicenseType.MultipleUnit], [GeneralLicenseType.MuseumCitySouth], [GeneralLicenseType.ManualService], [GeneralLicenseType.ConcurrentJobs1, GeneralLicenseType.ConcurrentJobs2]];
-
-        public static string GetStationNameFromId(long id) {
-            long Order = id - AP_ID.SLICENSES;
+        private static readonly JobLicenses[][] IdToJobLicense = [
+            [JobLicenses.FreightHaul], 
+            [JobLicenses.LogisticalHaul], 
+            [JobLicenses.Shunting], 
+            [JobLicenses.Fragile], 
+            [JobLicenses.TrainLength1, JobLicenses.TrainLength2], 
+            [JobLicenses.Hazmat1, JobLicenses.Hazmat2, JobLicenses.Hazmat3], 
+            [JobLicenses.Military1, JobLicenses.Military2, JobLicenses.Military3]
+        ];
+        private static readonly GeneralLicenseType[][] IdToGeneralLicense = [
+            [GeneralLicenseType.Dispatcher1], 
+            [GeneralLicenseType.TrainDriver], 
+            [GeneralLicenseType.DE2], 
+            [GeneralLicenseType.DM3], 
+            [GeneralLicenseType.DH4], 
+            [GeneralLicenseType.DE6], 
+            [GeneralLicenseType.S060], 
+            [GeneralLicenseType.SH282], 
+            [GeneralLicenseType.MultipleUnit], 
+            [GeneralLicenseType.MuseumCitySouth], 
+            [GeneralLicenseType.ManualService], 
+            [GeneralLicenseType.ConcurrentJobs1, GeneralLicenseType.ConcurrentJobs2]
+        ];
+        public static string GetStationNameFromOrder(long Order) {
             foreach (KeyValuePair<string, int> item in StationOrder) {
                 if (item.Value == Order) return item.Key;
             }
             return "";
+        }
+        public static string GetStationNameFromId(long id) {
+            return GetStationNameFromOrder(id - AP_ID.SLICENSES);
+            
         }
         public static int GetOrderFromStationName(string name) {
             return StationOrder[name];
@@ -567,8 +596,9 @@ namespace DvMod.Randomizer
                 return [];
             }
         }
-        public static int GetIDFromJobLicense(JobLicenseType_v2 jobLicense) {
-            return IdToJobLocations[jobLicense.v1];
+        public static (long, int) GetIDFromJobLicense(JobLicenseType_v2 jobLicense) {
+            int order = JobLocationsToOrder[jobLicense.v1];
+            return (AP_ID.LOC_JOB_LICENSES+order, order);
         }
         
         public static JobLicenseType_v2[] GetJobLicenseFromId(long id) {
@@ -578,8 +608,23 @@ namespace DvMod.Randomizer
                 return [];
             }
         }
-        public static int GetIDFromGeneralLicense(GeneralLicenseType_v2 generalLicense) {
-            return IdToGeneralLocations[generalLicense.v1];
+        public static GeneralLicenseType_v2 GetGeneralLicenseLocFromId(long Id) {
+            foreach (KeyValuePair<GeneralLicenseType, int> x in GeneralLocationsToOrder) {
+                if (x.Value == (Id - AP_ID.LOC_GENERAL_LICENSES))
+                    return x.Key.ToV2();
+            }
+            return GeneralLicenseType.NotSet.ToV2();
+        }
+        public static JobLicenseType_v2 GetJobLicenseLocFromId(long Id) {
+            foreach (KeyValuePair<JobLicenses, int> x in JobLocationsToOrder) {
+                if (x.Value == (Id - AP_ID.LOC_GENERAL_LICENSES))
+                    return x.Key.ToV2();
+            }
+            return JobLicenses.Basic.ToV2();
+        }
+        public static (long, int) GetIDFromGeneralLicense(GeneralLicenseType_v2 generalLicense) {
+            int order =  GeneralLocationsToOrder[generalLicense.v1];
+            return (AP_ID.LOC_GENERAL_LICENSES+order, order);
         }
         public static string GetItemPrefabFromId(long id) {
             return AddressToItemName[id - AP_ID.ITEMS];
@@ -610,17 +655,6 @@ namespace DvMod.Randomizer
             SpawnPoint sPoint = AddressToLocoRestorationLocation.FindMin(sp => (sp.Position - position).magnitude);
             int n = (sPoint.Name[2] == '/' || sPoint.Name[2] == ' ')?2:3;
             return sPoint.Name.Substring(0, n);
-        }
-        public static (Vector3, float) GetClosestLocoLocation(Vector3 position) {
-            Vector3 Pos = new(0.0f,0.0f,0.0f);
-            float Distance = float.PositiveInfinity;
-            foreach (SpawnPoint sPoint in AddressToLocoRestorationLocation) {
-                if ((sPoint.Position - position).magnitude < Distance){
-                    Pos = sPoint.Position;
-                    Distance = (sPoint.Position - position).magnitude;
-                }
-            }
-            return (Pos, Distance);
         }
         public static string GetNameFromGarageID(long id) {
             return id switch {
@@ -668,21 +702,39 @@ namespace DvMod.Randomizer
             item.name=name+" station license";
             SingletonBehaviour<StorageController>.Instance.AddItemToWorldStorageAfterOneFrame(license);
         }
+        public static string GetStationNameFromFinishingJobId(long Id) {
+            return GetStationNameFromOrder((Id & 0x1F00)<<8);
+        }
+        public static long ComputeCheckForJob(bool IsShunting, string Station, int nb) {
+            long check = 0x1000;
+            if (!IsShunting)
+                check += 0x1500;
+            return check + GetOrderFromStationName(Station) + nb;
+        }
+        public static DV_APLocation GetAPLocation(long id) {
+            return id switch {
+                >= 0x400 and < 0x500 => new APLoc_DemoLocoSpawn(id),
+                >= 0x1000 and < 0x2500 => new APLoc_ShuntingJobs(id),
+                >= 0x2500 and < 0x4000 => new APLoc_TransportJobs(id),
+                >= 0x600 and < 0x610 => new APLoc_LocoJobs(id),
+                >= 0x660 and < 0x670 => new APLoc_GeneralLicense(id),
+                >= 0x670 and < 0x680 => new APLoc_JobLicense(id),
+                >= 0x690 and < 0x6A0 => new APLoc_UnlockedGarage(id),
+                _ => new APLoc_Nothing(id)
+            };
+        }
         public static DV_APItem GetAPItem(int idx, ItemInfo item) {
             return item.ItemId switch {
                 -1 => new AP_Nothing(idx, item),
                 1 => new AP_Money(idx, item),
                 >= 0x100 and < 0x200 => new AP_PhysicalItem(idx, item),
                 >= 0x200 and < 0x300 => new AP_StationLicense(idx, item),
-                >= 0x300 and < 0x320 => new AP_GameLicense(idx, item),
+                >= 0x300 and < 0x310 => new AP_GeneralLicense(idx, item),
+                >= 0x310 and < 0x320 => new AP_JobLicense(idx, item),
                 >= 0x350 and < 0x360 => new AP_RelicLoco(idx, item),
                 >= 0x360 and < 0x370 => new AP_CrewVehicle(idx, item),
                 _ => throw new ArgumentException("Invalid item id")
             };
-        }
-        public static DV_APItem GetAPItem(long id) {
-            ItemInfo item = new(new(){Item = id, Location = -1, Player = -1},"Derail Valley", "Derail Valley",Main.player!.Session.Items.ItemInfoResolver,new(){});
-            return GetAPItem(-1, item);
         }
         public static GarageType_v2 GetGarageFromId(long Id) {
             return Id switch {

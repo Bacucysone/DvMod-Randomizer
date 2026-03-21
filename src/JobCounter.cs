@@ -5,6 +5,9 @@ using UnityEngine;
 using System.Collections.Generic;
 using DV.RenderTextureSystem.BookletRender;
 using System.Linq;
+using DV.CabControls.Spec;
+using Archipelago.MultiClient.Net.Models;
+using System.Text;
 namespace DvMod.Randomizer
 {
     [HarmonyPatch(typeof(BookletCreator_JobReport))]
@@ -20,19 +23,26 @@ namespace DvMod.Randomizer
             };
             bool IsShuntingJob = data.type == JobType.ShuntingLoad || data.type == JobType.ShuntingUnload;
             List<JobReportTasksTemplatePaperData.JobReportEntry> ToAdd = [];
-            (long check, int remaining) = IsShuntingJob ? Main.player.FinishShunting(Station) : Main.player.FinishTransport(Station);
-            if (check >= 0) Main.player.UnlockCheck(check);
-            string String1 = (remaining >= 0) ? $"You got a {Main.player.GetItemNameFromLocationId(check)}.":"";
+            (int curr, int max) = IsShuntingJob ? Main.player.GetShuntingData(Station) : Main.player.GetTransportData(Station);
+            StringBuilder sb = new();
+            if (curr < max) {
+                ItemInfo JobItem = Main.player.UnlockCheck(RandoCommonData.ComputeCheckForJob(IsShuntingJob, Station, curr));
+                sb.AppendLine($"You got a {JobItem.ItemDisplayName}.");
+            }
             string job = IsShuntingJob?"shunting":"transport";
-            string String2 = (remaining > 0) ? $"There are {remaining} rewards left for {job} in station {Station}": $"You got all rewards for {job} in station {Station}";
-            ToAdd.Add(new(String1+String2, "", remaining>0?JobReportTasksTemplatePaperData.EntryState.IN_PROGRESS:JobReportTasksTemplatePaperData.EntryState.COMPLETED));
+            if (curr < max-1) 
+                sb.AppendLine($"There are {max-curr+1} rewards left for {job} in station {Station}");
+            else 
+                sb.AppendLine($"You got all rewards for {job} in station {Station}");
+            ToAdd.Add(new(sb.ToString(), "", curr < max-1?JobReportTasksTemplatePaperData.EntryState.IN_PROGRESS:JobReportTasksTemplatePaperData.EntryState.COMPLETED));
+
             TrainCarType LastLoco = PlayerManager.LastLoco.carType;
             (long checkLoco, int remainingLoco) = Main.player.FinishLoco(PlayerManager.LastLoco.carType);
             if (remainingLoco < 0)
                 ToAdd.Add(new("You already got the reward for using the "+RandoCommonData.GetLocoNameFromType(LastLoco), "", JobReportTasksTemplatePaperData.EntryState.COMPLETED));
             else if (remainingLoco == 0) {
-                Main.player.UnlockCheck(checkLoco);
-                ToAdd.Add(new("You finished enough job with a "+RandoCommonData.GetLocoNameFromType(LastLoco)+", you got a "+Main.player.GetItemNameFromLocationId(checkLoco), "", JobReportTasksTemplatePaperData.EntryState.COMPLETED));
+                ItemInfo LocoItem = Main.player.UnlockCheck(checkLoco);
+                ToAdd.Add(new("You finished enough job with a "+RandoCommonData.GetLocoNameFromType(LastLoco)+" to get a "+LocoItem.ItemDisplayName, "", JobReportTasksTemplatePaperData.EntryState.COMPLETED));
             } else
                 ToAdd.Add(new($"You still need {remainingLoco} jobs with a {RandoCommonData.GetLocoNameFromType(LastLoco)} to get a reward", "", JobReportTasksTemplatePaperData.EntryState.IN_PROGRESS));
             

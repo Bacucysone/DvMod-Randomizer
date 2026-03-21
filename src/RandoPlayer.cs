@@ -24,10 +24,13 @@ using DV.UI;
 using DV.Teleporters;
 using System.Collections;
 using DV;
+using DV.OriginShift;
+using DV.Shops;
+using Archipelago.MultiClient.Net.Packets;
 
 namespace DvMod.Randomizer
 {
-        public class RandoSaveData(
+    public class RandoSaveData(
         int Version,
         bool[] StationLicenses, 
         bool[] HiddenGarages, 
@@ -45,7 +48,8 @@ namespace DvMod.Randomizer
         int Victory, 
         int VictoryThreshold, 
         bool AlreadyWon,
-        string TeleportToStation) {
+        string TeleportToStation,
+        HashSet<long> LocationsChecked) {
         public bool[] StationLicenses = StationLicenses;
         public bool[] HiddenGarages = HiddenGarages;
         public bool[] JobLocations = JobLocations;
@@ -64,11 +68,41 @@ namespace DvMod.Randomizer
         public bool AlreadyWon = AlreadyWon;
         public int Version = Version;
         public string TeleportToStation = TeleportToStation;
+        public HashSet<long> LocationsChecked = LocationsChecked;
     }
-
+    
     public class RandoPlayer
     {
+        internal class DemoLocoListener(int idx, float spatialthreshold = 5f, float timeThreshold = 20f) {
+            private readonly float SpatialThreshold = spatialthreshold;
+            private readonly float TimeThreshold = timeThreshold;
+            private Vector3 LocoPosition = RandoCommonData.GetInfoRestorationFromLocoLocationOrder(idx);
+            private readonly long CheckId = RandoCommonData.AP_ID.LOC_LOCO_RESTORATION + idx;
+            private float LastTime = 0f;
+            public void CheckPosition() {
+                if (Time.time - LastTime > TimeThreshold && (PlayerManager.PlayerTransform.AbsolutePosition() - LocoPosition).magnitude < SpatialThreshold) {
+                    string stationNeeded = RandoCommonData.GetStationFromLocoLocations(LocoPosition);
+                    bool StationOk = Main.player!.GotStationLicense(stationNeeded);
+                    bool MuseumOk = SingletonBehaviour<LicenseManager>.Instance.IsGeneralLicenseAcquired(GeneralLicenseType.MuseumCitySouth.ToV2());
+                    if (StationOk && MuseumOk) {
+                        ItemInfo item = Main.player.UnlockCheck(CheckId);
+                        Terminal.Log(TerminalLogType.Input, $"You found a {item.ItemDisplayName} on the ground!");
+                        Main.player.NotifyPlayer($"You found a {item.ItemDisplayName} on the ground!");
+                        Main.player.UpdateEvent -= CheckPosition;
+                    } else{
+                        LastTime = Time.time;
+                        if (StationOk && !MuseumOk)
+                            Main.player.NotifyPlayer("There is something here but you cannot take it... You need the museum license");
+                        else if (!StationOk && MuseumOk)
+                            Main.player.NotifyPlayer("There is something here but you cannot take it... You need the "+stationNeeded+" station license");
+                        else
+                            Main.player.NotifyPlayer("There is something here but you cannot take it... You need the museum license and the "+stationNeeded+" station license");
+                    }
+                }
+            }
+        }
     #region Player fields, properties and constructor/destructor
+
         public Vector3 Position => PlayerManager.ActiveCamera.transform.position + PlayerManager.ActiveCamera.transform.forward * 0.5f;
         public Quaternion Rotation => PlayerManager.ActiveCamera.transform.rotation;
         public RandoSaveData Data {get; private set;}
@@ -82,10 +116,19 @@ namespace DvMod.Randomizer
         private void CheckData() {
             
         }
-        public void InitGame() {
-            int ItemNumberReceived = Session.Items.AllItemsReceived.Count;
+        public void AddLocation(long id) {
+            Data.LocationsChecked.Append(id);
+        }
+        private void InitGame() {
+            //Check if the locations match (Can happen if the game crashes and progress is lost)
+            foreach (long checkId in Session.Locations.AllLocationsChecked){
+                if (!Data.LocationsChecked.Contains(checkId)) {
+                    WorldStreamingInit.LoadingFinished += RandoCommonData.GetAPLocation(checkId).EmergencyCheck;
+                }
+            }
+            //Check if we need to resync (items received while we were offline)
+            /*int ItemNumberReceived = Session.Items.AllItemsReceived.Count;
             if (ItemCount < ItemNumberReceived) {
-                //We need to resync
                 Main.Log($"Re-syncing...");
                 for (int id = Data.Index[0]+1 ; id < ItemNumberReceived; id++) {
                     if (!HasAcquired(id)){
@@ -94,24 +137,19 @@ namespace DvMod.Randomizer
                         waitingQueue.Enqueue(item);
                     }
                 }
+            }*/
+            //Add prices for normally tutorial acquired licenses
+            GeneralLicenseType.DE2.ToV2().price = 5000;
+            GeneralLicenseType.TrainDriver.ToV2().price = 1000;
+            JobLicenses.FreightHaul.ToV2().price = 10000;
+            //Set up demo loco locations
+            for (int i = 0; i < Data.LocoLocations.Count(); i++) {
+                if (!Data.LocoLocations[i])
+                    UpdateEvent += new DemoLocoListener(i).CheckPosition;
             }
-            //Add prices for usually tutorial acquired licenses
-            SetLicenseData(GeneralLicenseType.DE2.ToV2(),5000);
-            SetLicenseData(GeneralLicenseType.TrainDriver.ToV2(), 1000);
-            SetLicenseData(JobLicenses.FreightHaul.ToV2(), 10000);
             if (IsFirstLoading) {
                 //All that we have to do the first time
             }
-        }
-        private void SetLicenseData(GeneralLicenseType_v2 license, float price) {
-            license.price = price;
-            license.requiredGeneralLicense = null;
-            license.requiredJobLicense = null;
-        }
-        private void SetLicenseData(JobLicenseType_v2 license, float price) {
-            license.price = price;
-            license.requiredGeneralLicense = null;
-            license.requiredJobLicense = null;
         }
         private void FinishGame() {
 
@@ -120,26 +158,30 @@ namespace DvMod.Randomizer
             Data = saveData;
             CheckData();
             Session = ArchipelagoSessionFactory.CreateSession(Main.settings!.serverName, Main.settings!.Port);
+            SetupListeners(true);
             if(!Session.TryConnectAndLogin("Derail Valley", Main.settings!.User, ItemsHandlingFlags.AllItems, password: Main.settings!.Password).Successful)
                 throw new TimeoutException();
             SceneSwitcher.SceneRequested += (sc) => {if (sc == DVScenes.MainMenu) Main.player = null;};
             UpdateEvent += ProcessItems;
             InitGame();
-            SetupListeners(true);
+            
         }
         ~RandoPlayer() {
+            SetupListeners(false);
             Session.Socket.DisconnectAsync();
             FinishGame();
             UpdateEvent = null;
-            SetupListeners(false);
         }
-        internal void CallUpdate() {
+        public void CallUpdate() {
             UpdateEvent?.Invoke();
         }
     #endregion
     #region Network methods helpers
-        public void UnlockCheck(long checkId) {
-            Session.Locations.CompleteLocationChecks(checkId);
+        public ItemInfo UnlockCheck(long checkId) {
+            RandoCommonData.GetAPLocation(checkId).FullCheck();
+            var askTask = Session.Locations.ScoutLocationsAsync(checkId);
+            askTask.Wait();
+            return askTask.Result[checkId];
         }
         public bool HasAcquired(int index) {
             return index < Data.Index[0] || Data.Index.Contains(index);
@@ -164,7 +206,6 @@ namespace DvMod.Randomizer
             }
             ReNormalize();
         }
-
         private void SetupListeners(bool on) {
             if (on) {
                 Session.Items.ItemReceived += ReceivedItem;
@@ -177,15 +218,19 @@ namespace DvMod.Randomizer
                 Session.Socket.ErrorReceived -= ReceivedError;
             }
         }
-        private void ProcessItems() {
-            if (waitingQueue.TryDequeue(out var item))
-                _=item.Acquire();
+        private async void ProcessItems() {
+            if (waitingQueue.TryDequeue(out var item)){
+                Main.Log($"Actually acquiring item {item.DisplayName}");
+                await item.Acquire();
+            }
         }
         private void ReceivedItem(ReceivedItemsHelper itemHelper) {
             if (Main.player == null) return;
             Queue<ItemInfo> CurrQueue = new();
             while (itemHelper.Any()) {
-                CurrQueue.Enqueue(itemHelper.DequeueItem());
+                ItemInfo item = itemHelper.DequeueItem();
+                Main.Log($"Item number {itemHelper.Index} was received! It is {item.ItemDisplayName} found in {item.LocationDisplayName} by {item.Player.Name}");
+                CurrQueue.Enqueue(item);
             }
             int CurrIdx = itemHelper.Index - CurrQueue.Count() + 1;
             while (CurrQueue.Any()) {
@@ -226,6 +271,7 @@ namespace DvMod.Randomizer
         public string GetItemNameFromLocationId(long id, bool asHint=false) {
             Task<Dictionary<long, ScoutedItemInfo>> ask = Session.Locations.ScoutLocationsAsync(asHint?HintCreationPolicy.CreateAndAnnounceOnce:HintCreationPolicy.None, id);
             ask.Wait();
+            Main.Log($"Asking details for location id {id} and got {ask.Result.Keys.Select(n => n.ToString()).Aggregate((sacc, s) => sacc + ","+s)}");
             ScoutedItemInfo info = ask.Result[id];
             return info.ItemDisplayName+" ("+info.Player.Name+")";
         }
@@ -255,16 +301,6 @@ namespace DvMod.Randomizer
         public int AddRelic(long id) {
             return ++Data.ReceivedRelics[id-RandoCommonData.AP_ID.RELIC];
         }
-        public void Check(GeneralLicenseType_v2 generalLicense) {
-            int id = RandoCommonData.GetIDFromGeneralLicense(generalLicense);
-            Data.GeneralLocations[id] = true;
-            UnlockCheck(0x660+id);
-        }
-        public void Check(JobLicenseType_v2 jobLicense) {
-            int id = RandoCommonData.GetIDFromJobLicense(jobLicense);
-            Data.JobLocations[id] = true;
-            UnlockCheck(0x670+id);
-        }
         public void AcquireLicense(string Station) {
             Data.StationLicenses[RandoCommonData.GetOrderFromStationName(Station)] = true;
         }
@@ -273,6 +309,14 @@ namespace DvMod.Randomizer
             if (Data.LocoJobsThreshold[locoIdx] == Data.LocoJobs[locoIdx]) return (-1L, -1);
             Data.LocoJobs[locoIdx]++;
             return (0x600+locoIdx, Data.LocoJobsThreshold[locoIdx] - Data.LocoJobs[locoIdx]);
+        }
+        public (int, int) GetShuntingData(string station) {
+            int StIdx = RandoCommonData.GetOrderFromStationName(station);
+            return (Data.Shunts[StIdx], Data.ShuntThreshold[StIdx]);
+        }
+        public (int, int) GetTransportData(string station) {
+            int StIdx = RandoCommonData.GetOrderFromStationName(station);
+            return (Data.Freights[StIdx], Data.FreightThreshold[StIdx]);
         }
         public (long, int) FinishShunting(string station) {
             if (station == "HMB")
@@ -311,10 +355,10 @@ namespace DvMod.Randomizer
             return HasChecked(RandoCommonData.GetIdFromLocoLocations, position, Data.LocoLocations);
         }
         public bool HasChecked(JobLicenseType_v2 jobLicense) {
-            return HasChecked(RandoCommonData.GetIDFromJobLicense, jobLicense,  Data.JobLocations);
+            return HasChecked(x => RandoCommonData.GetIDFromJobLicense(x).Item2, jobLicense,  Data.JobLocations);
         }
         public bool HasChecked(GeneralLicenseType_v2 generalLicense) {
-            return HasChecked(RandoCommonData.GetIDFromGeneralLicense, generalLicense, Data.GeneralLocations);
+            return HasChecked(x => RandoCommonData.GetIDFromGeneralLicense(x).Item2, generalLicense, Data.GeneralLocations);
         }
 
         public bool GotStationLicense(string name) {
@@ -357,15 +401,23 @@ namespace DvMod.Randomizer
         }
         
         public bool IsJobLicenseAcquired(JobLicenseType_v2 jobLicense) {
-            return Data.JobLocations[RandoCommonData.GetIDFromJobLicense(jobLicense)];
+            return Data.JobLocations[RandoCommonData.GetIDFromJobLicense(jobLicense).Item2];
         }
         public bool IsGeneralLicenseAcquired(GeneralLicenseType_v2 jobLicense) {
-            return Data.GeneralLocations[RandoCommonData.GetIDFromGeneralLicense(jobLicense)];
+            return Data.GeneralLocations[RandoCommonData.GetIDFromGeneralLicense(jobLicense).Item2];
         }
         public void UnlockGarage(long id) {
             Data.HiddenGarages[id-RandoCommonData.AP_ID.GARAGES] = true;
         }
-        
+        public void CheckRestoLoco(long id) {
+            Data.LocoLocations[id - RandoCommonData.AP_ID.LOC_LOCO_RESTORATION] = true;
+        }
+        public void CheckGLicense(long Id) {
+            Data.GeneralLocations[Id - RandoCommonData.AP_ID.LOC_GENERAL_LICENSES] = true;
+        }
+        public void CheckJLicense(long Id) {
+            Data.JobLocations[Id - RandoCommonData.AP_ID.LOC_JOB_LICENSES] = true;
+        }
 
     }
 #endregion

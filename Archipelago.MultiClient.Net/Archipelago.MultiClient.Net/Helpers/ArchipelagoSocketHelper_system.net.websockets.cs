@@ -74,6 +74,7 @@ namespace Archipelago.MultiClient.Net.Helpers
         {
 	        var socket = new WebSocket(uri.ToString());
             socket.Compression = CompressionMethod.Deflate;
+            socket.Log.Level = LogLevel.Trace;
 	        if (socket.IsSecure)
 		        socket.SslConfiguration.EnabledSslProtocols = Tls12 | Tls13;
 

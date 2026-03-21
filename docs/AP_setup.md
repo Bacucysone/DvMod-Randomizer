@@ -48,6 +48,6 @@ When the multiworld is generated, the game is ready. A file is generated for Der
 ### Hosting the multiworld
 Derail Valley needs nothing in particular
 ### Starting the game
-When the game starts, the mod panel opens. You will need to set the informations of your multiserver in the randomizer option panel: address of the server (usually localhost if you host locally, or archipelago.gg), the port, your slot name (the one you put in the option yaml) and your password if you chose any. You can then start the imported save.
+When the game starts, the mod panel opens. You will need to set the informations of your multiserver in the randomizer option panel: address of the server (usually localhost if you host locally, or archipelago.gg), the port, your slot name (the one you put in the option yaml) and your password if you chose any. You can then start the imported save. To prevent progress not correctly recorded, if the game cannot connect to the Archipelago server, the loading will stop and you will go back to main menu. If you manage to load into the game and start playing, that should mean that everything is set correctly.
 ### While playing
 Everything, between checking locations and getting items should be automatic through the mod, you just have to play. To enter the different commands of Archipelago (!hint, !collect, !release, etc...) you can either connect through a text client, or use the integrated developer terminal of Derail Valley (default hotkey `\``)

@@ -469,9 +469,9 @@ namespace Archipelago.MultiClient.Net.Helpers
 			locationInfoPacketCallbackTask = new TaskCompletionSource<Dictionary<long, ScoutedItemInfo>>();
             awaitingLocationInfoPacket = true;
 
-            socket.SendPacketAsync(new LocationScoutsPacket
+            _=socket.SendPacketAsync(new LocationScoutsPacket
             {
-                Locations = idsToScout,
+                Locations = ids,
                 CreateAsHint = (int)hintCreationPolicy
 			});
 

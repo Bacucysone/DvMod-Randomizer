@@ -15,6 +15,7 @@ I have several things I want to do, in no particular order
 - Improve the overall balance of the game (Museum license is extremely important in terms of numbers of checks, while other progression items such as the garage keys unlock very few checks). This may come with a re-do of the logic (Smooth out the playing experience, especially with regards to money making and money-based locations, maybe adding uses to otherwise less useful parts of the game, such as the caboose, the player house, maybe combining other mods (passenger jobs, custom cars, multiplayer, etc...)).
 - For now, the developer terminal console of the game is used as an interface with the server (you need to use it to send commands such as !hint, or you may connect using a text client). Ultimately, I want to remove the use of the terminal in favor of in-game elements (the career manager, the pieces of paper that are everywhere...)
 - This version is very much a beta version, almost proof of concept. There are lots of code hacks (regarding network communication for example) that would benefit from a re-factor, but have no impact on the game content.
+- Add a real support for translation (there are not much new text added by the mod, but the number may grow and a basic framework from start may be useful)
 
 ## Licensing and contributions
 This code is under the MIT license (basically, you can do whatever you want with this as long as you ship the license file with your modified version of the code).
