@@ -27,7 +27,10 @@ namespace DvMod.Randomizer
         public static void GeneralLicensesInfoPatch(CareerManagerLicensesScreen.LicenseEntry __instance) {
             if (Main.player == null) return;
             __instance.IsAcquired = Main.player.HasChecked(__instance.GeneralLicense);
-            __instance.IsObtainable |= __instance.GeneralLicense.v1 == GeneralLicenseType.TrainDriver || __instance.GeneralLicense.v1 == GeneralLicenseType.DE2;
+            __instance.IsObtainable |=
+                     __instance.GeneralLicense.v1 == GeneralLicenseType.TrainDriver 
+                  || __instance.GeneralLicense.v1 == GeneralLicenseType.DE2
+                  || __instance.GeneralLicense.v1 == GeneralLicenseType.Dispatcher1;
             if (!__instance.IsAcquired){
                 __instance.status.text = "$" + __instance.GeneralLicense.price.ToString("N2", LocalizationAPI.CC);
                 __instance.name.text += "?";

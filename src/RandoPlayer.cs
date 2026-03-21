@@ -27,6 +27,7 @@ using DV;
 using DV.OriginShift;
 using DV.Shops;
 using Archipelago.MultiClient.Net.Packets;
+using DV.Util.EventWrapper;
 
 namespace DvMod.Randomizer
 {
@@ -38,7 +39,7 @@ namespace DvMod.Randomizer
         bool[] GeneralLocations,
         bool[] LocoLocations,
         int[] ReceivedRelics, 
-        int[] Index, 
+        int Index, 
         int[] Shunts, 
         int[] ShuntThreshold, 
         int[] Freights, 
@@ -57,7 +58,7 @@ namespace DvMod.Randomizer
         public bool[] LocoLocations = LocoLocations;
         public int[] ReceivedRelics = ReceivedRelics;
         public int[] Shunts = Shunts;
-        public int[] Index = Index;
+        public int Index = Index;
         public int[] ShuntThreshold = ShuntThreshold;
         public int[] Freights = Freights;
         public int[] FreightThreshold = FreightThreshold;
@@ -108,16 +109,14 @@ namespace DvMod.Randomizer
         public RandoSaveData Data {get; private set;}
         public bool IsFirstLoading => !Data.TeleportToStation.IsNullOrEmpty();
         private readonly ConcurrentQueue<DV_APItem> waitingQueue = new();
+        private PauseMenu Menu {get => UnityEngine.Object.FindObjectOfType<PauseMenu>();}
         public ArchipelagoSession Session;
         public event Action? UpdateEvent;
-        public int ItemCount {
-            get => Data.Index[0] + Data.Index.Count() -1;
-        }
         private void CheckData() {
             
         }
-        public void AddLocation(long id) {
-            Data.LocationsChecked.Append(id);
+        public bool AddLocation(long id) {
+            return Data.LocationsChecked.Add(id);
         }
         private void InitGame() {
             //Check if the locations match (Can happen if the game crashes and progress is lost)
@@ -151,8 +150,10 @@ namespace DvMod.Randomizer
                 //All that we have to do the first time
             }
         }
-        private void FinishGame() {
-
+        private IEnumerator Subscribe() {
+            while (Menu == null) yield return null;
+            Menu.controller.ExitLevelRequested += Dispose;
+            Menu.controller.QuitGameRequested += Dispose;
         }
         public RandoPlayer(RandoSaveData saveData) {
             Data = saveData;
@@ -161,16 +162,20 @@ namespace DvMod.Randomizer
             SetupListeners(true);
             if(!Session.TryConnectAndLogin("Derail Valley", Main.settings!.User, ItemsHandlingFlags.AllItems, password: Main.settings!.Password).Successful)
                 throw new TimeoutException();
-            SceneSwitcher.SceneRequested += (sc) => {if (sc == DVScenes.MainMenu) Main.player = null;};
+            SingletonBehaviour<CoroutineManager>.Instance.Run(Subscribe());
+            
             UpdateEvent += ProcessItems;
             InitGame();
             
         }
-        ~RandoPlayer() {
+        private void Dispose() {
+            Menu.controller.ExitLevelRequested -= Dispose;
+            Menu.controller.QuitGameRequested -= Dispose;
+            Data.Index -= waitingQueue.Count;
             SetupListeners(false);
             Session.Socket.DisconnectAsync();
-            FinishGame();
             UpdateEvent = null;
+            Main.player = null;
         }
         public void CallUpdate() {
             UpdateEvent?.Invoke();
@@ -182,29 +187,6 @@ namespace DvMod.Randomizer
             var askTask = Session.Locations.ScoutLocationsAsync(checkId);
             askTask.Wait();
             return askTask.Result[checkId];
-        }
-        public bool HasAcquired(int index) {
-            return index < Data.Index[0] || Data.Index.Contains(index);
-        }
-        private void ReNormalize() {
-            while (Data.Index.Count() > 1 && Data.Index[0] == Data.Index[1]-1) Data.Index.Skip(1);
-        }
-        public void AddItem(int index) {
-            if (index == -1) return;
-            if (index < Data.Index[0]) {
-                throw new ArgumentException("Item was already acquired");
-            } else if (index == Data.Index[0]+1){
-                Data.Index[0] = index;
-            } else {
-                int smaller = Data.Index.Count(x => x <= index);
-                int[] FirstElements = Data.Index.SubArray(0, smaller);
-                if (FirstElements.Last() == index) {
-                    throw new ArgumentException("Item was already acquired");
-                }
-                int[] LastElements = Data.Index.SubArray(smaller, Data.Index.Count()-smaller);
-                Data.Index = [..FirstElements, index, .. LastElements];
-            }
-            ReNormalize();
         }
         private void SetupListeners(bool on) {
             if (on) {
@@ -226,12 +208,15 @@ namespace DvMod.Randomizer
         private void ReceivedItem(ReceivedItemsHelper itemHelper) {
             Queue<ItemInfo> CurrQueue = new();
             while (itemHelper.Any()) {
-                ItemInfo item = itemHelper.DequeueItem();
-                CurrQueue.Enqueue(item);
+                CurrQueue.Enqueue(itemHelper.DequeueItem());
             }
-            int CurrIdx = itemHelper.Index - CurrQueue.Count() + 1;
-            while (CurrQueue.Any()) {
-                waitingQueue.Enqueue(RandoCommonData.GetAPItem(CurrIdx++, CurrQueue.Dequeue()));
+            if (itemHelper.Index == Data.Index + CurrQueue.Count) {
+                while (CurrQueue.Any()) {
+                    waitingQueue.Enqueue(RandoCommonData.GetAPItem(Data.Index++, CurrQueue.Dequeue()));
+                }
+            } else {
+                while (Data.Index < itemHelper.Index)
+                    waitingQueue.Enqueue(RandoCommonData.GetAPItem(Data.Index, itemHelper.AllItemsReceived[Data.Index++]));
             }
         }
 

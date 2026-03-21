@@ -703,13 +703,13 @@ namespace DvMod.Randomizer
             SingletonBehaviour<StorageController>.Instance.AddItemToWorldStorageAfterOneFrame(license);
         }
         public static string GetStationNameFromFinishingJobId(long Id) {
-            return GetStationNameFromOrder((Id & 0x1F00)<<8);
+            return GetStationNameFromOrder((Id & 0x1F00)>>8);
         }
         public static long ComputeCheckForJob(bool IsShunting, string Station, int nb) {
-            long check = 0x1000;
+            long check = 0x2000;
             if (!IsShunting)
-                check += 0x1500;
-            return check + GetOrderFromStationName(Station) + nb;
+                check += 0x2000;
+            return check + 0x100 * GetOrderFromStationName(Station) + nb;
         }
         public static DV_APLocation GetAPLocation(long id) {
             return id switch {

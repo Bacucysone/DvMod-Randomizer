@@ -22,7 +22,6 @@ namespace DvMod.Randomizer {
         public int Idx {get;} = idx;
         protected ItemInfo Item = item;
         public long Id {get => Item.ItemId;}
-        private bool HasBeenAcquired = false;
         public string LocationDisplayName {
             get => Item.Player.Name + " ("+Item.LocationDisplayName+")";
         }
@@ -32,11 +31,6 @@ namespace DvMod.Randomizer {
         }
         
         public async Task Acquire() {
-            if (HasBeenAcquired) {
-                Main.Log($"Warning, trying to claim twice the {DisplayName} received. Doing nothing but it is weird");
-                return;
-            }
-            HasBeenAcquired = true;
             if (IsObtainable){
                 bool GotItem;
                 do {
@@ -47,7 +41,7 @@ namespace DvMod.Randomizer {
                 } while (!GotItem);
             } else 
                 Main.Log("There is a "+DisplayName+" but you cannot have anymore");
-            Main.player!.AddItem(Idx);
+            
         }
         protected abstract bool AcquireUnconditional();
         public abstract bool IsObtainable {get;}
