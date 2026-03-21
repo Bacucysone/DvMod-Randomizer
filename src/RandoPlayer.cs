@@ -220,16 +220,13 @@ namespace DvMod.Randomizer
         }
         private async void ProcessItems() {
             if (waitingQueue.TryDequeue(out var item)){
-                Main.Log($"Actually acquiring item {item.DisplayName}");
                 await item.Acquire();
             }
         }
         private void ReceivedItem(ReceivedItemsHelper itemHelper) {
-            if (Main.player == null) return;
             Queue<ItemInfo> CurrQueue = new();
             while (itemHelper.Any()) {
                 ItemInfo item = itemHelper.DequeueItem();
-                Main.Log($"Item number {itemHelper.Index} was received! It is {item.ItemDisplayName} found in {item.LocationDisplayName} by {item.Player.Name}");
                 CurrQueue.Enqueue(item);
             }
             int CurrIdx = itemHelper.Index - CurrQueue.Count() + 1;
