@@ -23,19 +23,23 @@ namespace DvMod.Randomizer
             };
             bool IsShuntingJob = data.type == JobType.ShuntingLoad || data.type == JobType.ShuntingUnload;
             List<JobReportTasksTemplatePaperData.JobReportEntry> ToAdd = [];
-            (int curr, int max) = IsShuntingJob ? Main.player.GetShuntingData(Station) : Main.player.GetTransportData(Station);
-            StringBuilder sb = new();
-            if (curr < max) {
-                ItemInfo JobItem = Main.player.UnlockCheck(RandoCommonData.ComputeCheckForJob(IsShuntingJob, Station, curr));
-                sb.AppendLine($"You got a {JobItem.ItemDisplayName}.");
+            if (Main.player.GotStationLicense(Station)){
+                (int curr, int max) = IsShuntingJob ? Main.player.GetShuntingData(Station) : Main.player.GetTransportData(Station);
+                StringBuilder sb = new();
+                if (curr < max) {
+                    ItemInfo JobItem = Main.player.UnlockCheck(RandoCommonData.ComputeCheckForJob(IsShuntingJob, Station, curr));
+                    sb.AppendLine($"You got a {JobItem.ItemDisplayName}.");
+                }
+                string job = IsShuntingJob?"shunting":"transport";
+                if (curr < max-1) 
+                    sb.AppendLine($"There are {max-curr+1} rewards left for {job} in station {Station}");
+                else 
+                    sb.AppendLine($"You got all rewards for {job} in station {Station}");
+                ToAdd.Add(new(sb.ToString(), "", curr < max-1?JobReportTasksTemplatePaperData.EntryState.IN_PROGRESS:JobReportTasksTemplatePaperData.EntryState.COMPLETED));
+            } else {
+                ToAdd.Add(new("You do not have the required station license. You cannot earn any item", "", JobReportTasksTemplatePaperData.EntryState.WARNING));
             }
-            string job = IsShuntingJob?"shunting":"transport";
-            if (curr < max-1) 
-                sb.AppendLine($"There are {max-curr+1} rewards left for {job} in station {Station}");
-            else 
-                sb.AppendLine($"You got all rewards for {job} in station {Station}");
-            ToAdd.Add(new(sb.ToString(), "", curr < max-1?JobReportTasksTemplatePaperData.EntryState.IN_PROGRESS:JobReportTasksTemplatePaperData.EntryState.COMPLETED));
-
+            
             TrainCarType LastLoco = PlayerManager.LastLoco.carType;
             (long checkLoco, int remainingLoco) = Main.player.FinishLoco(PlayerManager.LastLoco.carType);
             if (remainingLoco < 0)

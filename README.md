@@ -1,13 +1,13 @@
 # Derail Valley Randomizer
 This is the main repository for an Archipelago implementation for the game Derail Valley.
-Here is the source code for the APWorld (logic of the randomizer, in python, using the Archipelago structure) and the mod for Derail Valley (Installed using Unity mod manager, installation setup in another file TODO). The needed files to play are (will be) in the release section.
+Here is the source code for the APWorld (logic of the randomizer, in python, using the Archipelago structure) and the mod for Derail Valley (Installed using Unity mod manager, installation setup in [this document](docs/AP_setup.md)). The needed files to play are (will be) in the release section.
 
 ## Features
 You can play solo, or with other players (who can play on any game supported by Archipelago/Multiworld). The Archipelago part is provided as an .apworld file, please consult the Archipelago docs for further instructions.
-- The two main components of an archipelago playthrough are "items" and "locations". Locations are what you have to do/where you have to go to unlock things, and items are what you can unlock. The full list of locations and items of Derail Valley are (will be) somewhere.
+- The two main components of an archipelago playthrough are "items" and "locations". Locations are what you have to do/where you have to go to unlock things, and items are what you can unlock. The full list of locations and items of Derail Valley is in [this document](docs/AP_derail_valley_data.md).
 - Some locations need some items to be checked. A logic ensures that every location can eventually be checked (If location A needs item B to be checked, it is impossible for location A to unlock item B, it will unlock something else).
 - You can either play a single game of randomized Derail Valley, or create a multiworld with other games (even other copies of Derail Valley), played by as many players as you want. If there are several games in your multiworld, you may unlock items from other games in Derail Valley, and the items you need to progress in Derail Valley may be located in other games.
-- To generate a playthrough, you need to provide Archipelago with an options files (called yaml). This file contains several settings (a list can be -- will be -- found somewhere). With these settings, you can tailor the game as you want, do not hesitate to send feedbacks about what you want to see.
+- To generate a playthrough, you need to provide Archipelago with an options files (called yaml). This file contains several settings (a list can be found [just here](docs/AP_setup.md)). With these settings, you can tailor the game as you want, do not hesitate to send feedbacks about what you want to see.
 
 ## Future plans
 I have several things I want to do, in no particular order
