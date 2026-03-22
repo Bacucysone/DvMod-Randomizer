@@ -81,6 +81,7 @@ namespace DvMod.Randomizer
             private readonly long CheckId = RandoCommonData.AP_ID.LOC_LOCO_RESTORATION + idx;
             private float LastTime = 0f;
             public void CheckPosition() {
+                if (PlayerManager.PlayerTransform == null) return;
                 if (Time.time - LastTime > TimeThreshold && (PlayerManager.PlayerTransform.AbsolutePosition() - LocoPosition).magnitude < SpatialThreshold) {
                     string stationNeeded = RandoCommonData.GetStationFromLocoLocations(LocoPosition);
                     bool StationOk = Main.player!.GotStationLicense(stationNeeded);
@@ -118,7 +119,7 @@ namespace DvMod.Randomizer
         public bool AddLocation(long id) {
             return Data.LocationsChecked.Add(id);
         }
-        private void InitGame() {
+        public void InitGame() {
             //Check if the locations match (Can happen if the game crashes and progress is lost)
             foreach (long checkId in Session.Locations.AllLocationsChecked){
                 if (!Data.LocationsChecked.Contains(checkId)) {
@@ -126,17 +127,17 @@ namespace DvMod.Randomizer
                 }
             }
             //Check if we need to resync (items received while we were offline)
-            /*int ItemNumberReceived = Session.Items.AllItemsReceived.Count;
-            if (ItemCount < ItemNumberReceived) {
+            int ItemNumberReceived = Session.Items.AllItemsReceived.Count;
+            if (Data.Index < ItemNumberReceived) {
                 Main.Log($"Re-syncing...");
-                for (int id = Data.Index[0]+1 ; id < ItemNumberReceived; id++) {
-                    if (!HasAcquired(id)){
-                        DV_APItem item = RandoCommonData.GetAPItem(id, Session.Items.AllItemsReceived[id]);
-                        Main.Log("Queueing item "+item.DisplayName);
-                        waitingQueue.Enqueue(item);
-                    }
+                for (int id = Data.Index ; id < ItemNumberReceived; id++) {
+                    DV_APItem item = RandoCommonData.GetAPItem(id, Session.Items.AllItemsReceived[id]);
+                    waitingQueue.Enqueue(item);
                 }
-            }*/
+                Data.Index = ItemNumberReceived;
+            }
+            SetupListeners(true);
+            UpdateEvent += ProcessItems;
             //Add prices for normally tutorial acquired licenses
             GeneralLicenseType.DE2.ToV2().price = 5000;
             GeneralLicenseType.TrainDriver.ToV2().price = 1000;
@@ -159,13 +160,10 @@ namespace DvMod.Randomizer
             Data = saveData;
             CheckData();
             Session = ArchipelagoSessionFactory.CreateSession(Main.settings!.serverName, Main.settings!.Port);
-            SetupListeners(true);
+            
             if(!Session.TryConnectAndLogin("Derail Valley", Main.settings!.User, ItemsHandlingFlags.AllItems, password: Main.settings!.Password).Successful)
                 throw new TimeoutException();
             SingletonBehaviour<CoroutineManager>.Instance.Run(Subscribe());
-            
-            UpdateEvent += ProcessItems;
-            InitGame();
             
         }
         private void Dispose() {
@@ -253,7 +251,6 @@ namespace DvMod.Randomizer
         public string GetItemNameFromLocationId(long id, bool asHint=false) {
             Task<Dictionary<long, ScoutedItemInfo>> ask = Session.Locations.ScoutLocationsAsync(asHint?HintCreationPolicy.CreateAndAnnounceOnce:HintCreationPolicy.None, id);
             ask.Wait();
-            Main.Log($"Asking details for location id {id} and got {ask.Result.Keys.Select(n => n.ToString()).Aggregate((sacc, s) => sacc + ","+s)}");
             ScoutedItemInfo info = ask.Result[id];
             return info.ItemDisplayName+" ("+info.Player.Name+")";
         }

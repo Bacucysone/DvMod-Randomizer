@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using DV.InventorySystem;
 using DV.ThingTypes;
 using DV.Utils;
@@ -62,5 +63,13 @@ public class APLoc_JobLicense : DV_APLocation {
         Main.player!.CheckJLicense(Id);
 }
 public class APLoc_UnlockedGarage(long Id) : DV_APLocation(Id) {
-    protected override void ChangeLocalState() => Main.player!.UnlockGarage(Id);
+    protected override void ChangeLocalState() {
+        GarageType_v2 garage = RandoCommonData.GetGarageFromId(Id);
+        TrainCar[] garageCars = GarageCarSpawner.Spawners.Values.Where(g => g.garageType == garage).Single().garageCars;
+        foreach (TrainCar car in garageCars){
+            if (car != null && !Main.player!.HasUnlocked(garage))
+                SingletonBehaviour<CarSpawner>.Instance.DeleteCar(car);
+        }
+        SingletonBehaviour<LicenseManager>.Instance.UnlockGarage(garage);
+    }
 }

@@ -43,6 +43,7 @@ namespace DvMod.Randomizer
                 Main.player = null;
                 return;
             }
+            Main.player.InitGame();
         }
         [HarmonyPatch(nameof(StartGameData_FromSaveGame.ShouldCreateSaveGameAfterLoad))]
         public static void Postfix(ref bool __result) {

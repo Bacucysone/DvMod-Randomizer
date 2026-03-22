@@ -669,7 +669,7 @@ namespace DvMod.Randomizer
             return new() {
                 unitsToBuy=idx+1,
                 pricePerUnit=0,
-                resourceName="Freight "+(idx+1)+": "+Main.player!.GetItemNameFromLocationId(0x2500+GetOrderFromStationName(name)*0x100+idx, true),
+                resourceName="Freight n°"+(idx+1)+": "+Main.player!.GetItemNameFromLocationId(0x4000+GetOrderFromStationName(name)*0x100+idx, true),
                 resourceIcon= TrainCarType.LocoDiesel.ToV2().icon,
                 car=null
             };
@@ -678,7 +678,7 @@ namespace DvMod.Randomizer
             return new() {
                 unitsToBuy=idx+1,
                 pricePerUnit=0,
-                resourceName="Shunting "+(idx+1)+": "+Main.player!.GetItemNameFromLocationId(0x1000+GetOrderFromStationName(name)*0x100+idx, true),
+                resourceName="Shunting n°"+(idx+1)+": "+Main.player!.GetItemNameFromLocationId(0x2000+GetOrderFromStationName(name)*0x100+idx, true),
                 resourceIcon= TrainCarType.LocoShunter.ToV2().icon,
                 car=null
             };
@@ -738,10 +738,10 @@ namespace DvMod.Randomizer
         }
         public static GarageType_v2 GetGarageFromId(long Id) {
             return Id switch {
-                0x360 => Garage.Bob.ToV2(),
-                0x361 => Garage.Caboose.ToV2(),
-                0x362 => Garage.DE6_Slug.ToV2(),
-                0x363 => Garage.DM1U.ToV2(),
+                0x360 or 0x692 => Garage.Bob.ToV2(),
+                0x361 or 0x691=> Garage.Caboose.ToV2(),
+                0x362 or 0x690=> Garage.DE6_Slug.ToV2(),
+                0x363 or 0x693=> Garage.DM1U.ToV2(),
                 _ => throw new ArgumentException("GetGarageFromId: Id is not a Garage")
             };
         }

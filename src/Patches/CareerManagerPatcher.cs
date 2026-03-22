@@ -15,7 +15,9 @@ namespace DvMod.Randomizer
         public static void JobLicensesInfoPatch(CareerManagerLicensesScreen.LicenseEntry __instance) {
             if (Main.player == null) return;
             __instance.IsAcquired = Main.player.HasChecked(__instance.JobLicense);
-            __instance.IsObtainable |= __instance.JobLicense.v1 == JobLicenses.FreightHaul;
+            __instance.IsObtainable |= 
+                    __instance.JobLicense.v1 == JobLicenses.FreightHaul
+                 || __instance.JobLicense.v1 == JobLicenses.Shunting;
             if (!__instance.IsAcquired){
                 __instance.status.text = "$" + __instance.JobLicense.price.ToString("N2", LocalizationAPI.CC);
                 __instance.name.text += "?";

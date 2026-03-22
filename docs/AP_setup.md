@@ -47,6 +47,8 @@ When the multiworld is generated, the game is ready. A file is generated for Der
 ## During the game
 ### Hosting the multiworld
 Derail Valley needs nothing in particular
+### Derail Valley difficulty
+The difficulty is set to standard by default, but before starting your first game, you can change it to whatever you want (including custom difficulty). It is recommended to put the time to sleep to "can always sleep", as you may need to sleep regularly to refresh jobs and locos.
 ### Starting the game
 When the game starts, the mod panel opens. You will need to set the informations of your multiserver in the randomizer option panel: address of the server (usually localhost if you host locally, or archipelago.gg), the port, your slot name (the one you put in the option yaml) and your password if you chose any. You can then start the imported save. To prevent progress not correctly recorded, if the game cannot connect to the Archipelago server, the loading will stop and you will go back to main menu. If you manage to load into the game and start playing, that should mean that everything is set correctly.
 ### While playing

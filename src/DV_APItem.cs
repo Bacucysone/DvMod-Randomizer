@@ -21,6 +21,7 @@ namespace DvMod.Randomizer {
     public abstract class DV_APItem(int idx, ItemInfo item) {
         public int Idx {get;} = idx;
         protected ItemInfo Item = item;
+        private readonly bool LocalItem = item.Player.Slot == Main.player!.Session.Players.ActivePlayer.Slot;
         public long Id {get => Item.ItemId;}
         public string LocationDisplayName {
             get => Item.Player.Name + " ("+Item.LocationDisplayName+")";
@@ -35,12 +36,13 @@ namespace DvMod.Randomizer {
                 bool GotItem;
                 do {
                     while (!WorldStreamingInit.IsLoaded) await Task.Yield();
-                    Main.Log("Here is a "+DisplayName);
+                    if (!LocalItem)
+                        Main.player!.NotifyPlayer($"You got a {DisplayName} from {LocationDisplayName}");
                     GotItem = AcquireUnconditional();
                     await Task.Yield();
                 } while (!GotItem);
-            } else 
-                Main.Log("There is a "+DisplayName+" but you cannot have anymore");
+            } else if (!LocalItem)
+                Main.player!.NotifyPlayer($"You received a {DisplayName} from {LocationDisplayName}, but you cannot have anymore");
             
         }
         protected abstract bool AcquireUnconditional();
