@@ -28,6 +28,7 @@ using DV.OriginShift;
 using DV.Shops;
 using Archipelago.MultiClient.Net.Packets;
 using DV.Util.EventWrapper;
+using Archipelago.MultiClient.Net.BounceFeatures.DeathLink;
 
 namespace DvMod.Randomizer
 {
@@ -52,8 +53,9 @@ namespace DvMod.Randomizer
         string TeleportToStation,
         HashSet<long> LocationsChecked,
         bool HintsOnLocoLicense,
-        bool HintsOnStationLicense) {
-            public class DVConfig(int[] ShuntThreshold, int[] FreightThreshold, int[] LocoJobsThreshold, int Victory, int VictoryThreshold, bool HintsOnLocoLicense, bool HintsOnStationLicense) {
+        bool HintsOnStationLicense, 
+        bool DeathLink) {
+            public class DVConfig(int[] ShuntThreshold, int[] FreightThreshold, int[] LocoJobsThreshold, int Victory, int VictoryThreshold, bool HintsOnLocoLicense, bool HintsOnStationLicense, bool DeathLink) {
                 public int[] ShuntThreshold = ShuntThreshold;
                 public int[] FreightThreshold = FreightThreshold;
                 public int[] LocoJobsThreshold = LocoJobsThreshold;
@@ -61,6 +63,7 @@ namespace DvMod.Randomizer
                 public int VictoryThreshold = VictoryThreshold;
                 public bool HintsOnLocoLicense = HintsOnLocoLicense;
                 public bool HintsOnStationLicense = HintsOnStationLicense;
+                public bool DeathLink = DeathLink;
             }
         public bool[] StationLicenses = StationLicenses;
         public bool[] HiddenGarages = HiddenGarages;
@@ -76,7 +79,7 @@ namespace DvMod.Randomizer
         public int Version = Version;
         public string TeleportToStation = TeleportToStation;
         public HashSet<long> LocationsChecked = LocationsChecked;
-        public DVConfig Config = new(ShuntThreshold, FreightThreshold, LocoJobsThreshold, Victory, VictoryThreshold, HintsOnLocoLicense, HintsOnStationLicense);
+        public DVConfig Config = new(ShuntThreshold, FreightThreshold, LocoJobsThreshold, Victory, VictoryThreshold, HintsOnLocoLicense, HintsOnStationLicense, DeathLink);
     }
     
     public class RandoPlayer
@@ -120,6 +123,7 @@ namespace DvMod.Randomizer
         private PauseMenu Menu {get => UnityEngine.Object.FindObjectOfType<PauseMenu>();}
         public ArchipelagoSession Session;
         public event Action? UpdateEvent;
+        public DeathLinkService? deathLinkService = null;
         private void CheckData() {
             
         }
@@ -172,12 +176,19 @@ namespace DvMod.Randomizer
                 throw new TimeoutException();
             SingletonBehaviour<CoroutineManager>.Instance.Run(Subscribe());
             
+            if (Data.Config.DeathLink) {
+                deathLinkService = Session.CreateDeathLinkService();
+                deathLinkService.OnDeathLinkReceived += DeathLinkPatch.Derail;
+                deathLinkService.EnableDeathLink();
+            }
+
         }
         private void Dispose() {
             Menu.controller.ExitLevelRequested -= Dispose;
             Menu.controller.QuitGameRequested -= Dispose;
             Data.Index -= waitingQueue.Count;
             SetupListeners(false);
+            deathLinkService = null;
             Session.Socket.DisconnectAsync();
             UpdateEvent = null;
             Main.player = null;
