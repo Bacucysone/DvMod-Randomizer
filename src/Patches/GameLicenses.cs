@@ -2,7 +2,9 @@
 using System;
 using System.Collections.Generic;
 using DV;
+using DV.RenderTextureSystem.BookletRender;
 using DV.ThingTypes;
+using DV.UI;
 using HarmonyLib;
 
 namespace DvMod.Randomizer
@@ -25,6 +27,16 @@ namespace DvMod.Randomizer
     		ProcessListOfIDs(data.GetStringArray("Garages"), Globals.G.Types.garages).ForEach(__instance.UnlockGarage);
 
             return false;
+        }
+    }
+    [HarmonyPatch(typeof(StaticLicenseBookletRender), nameof(StaticLicenseBookletRender.GetStaticTemplatePaperData))]
+    public static class LocoHintPatcher {
+        public static void Postfix(GeneralLicenseType_v2 ___generalLicense, ref TemplatePaperData[] __result) {
+            if (Main.player == null) return;
+            int Order = RandoCommonData.GetOrderFromLocoLicense(___generalLicense);
+            if (Order < 0 || !Main.player.Data.Config.HintsOnLocoLicense) return;
+            LicenseTemplatePaperData FirstPage = (LicenseTemplatePaperData) __result[0];
+            FirstPage.licenseDescription += $"\nIn {Main.player.Data.Config.LocoJobsThreshold[Order]} job with this loco, you will earn a {Main.player.GetItemNameFromLocationId(RandoCommonData.AP_ID.LOC_LOCO_NB_JOBS+Order, true)}";
         }
     }
 }

@@ -640,6 +640,18 @@ namespace DvMod.Randomizer
                 _ => "ERROR"
             };
         }
+        public static int GetOrderFromLocoLicense(GeneralLicenseType_v2 license) {
+            if (license == null) return -1;
+            return license.v1 switch {
+                GeneralLicenseType.DE2 => 0,
+                GeneralLicenseType.DM3 => 1,
+                GeneralLicenseType.DH4 => 2,
+                GeneralLicenseType.DE6 => 3,
+                GeneralLicenseType.S060 => 4,
+                GeneralLicenseType.SH282 => 5,
+                _ => -1
+            };
+        }
         public static LocoRestorationController GetLocoControllerFromId(long id) {
             return LocoRestorationController.allLocoRestorationControllers.Find(cont => cont.loco.carType == GetCarTypeFromID(id-AP_ID.RELIC));
         }
@@ -691,6 +703,13 @@ namespace DvMod.Randomizer
                 resourceIcon=GetStationSprite(name),
                 car=null
             }];
+            if (Main.player!.Data.Config.HintsOnStationLicense) {
+                int Order = GetOrderFromStationName(name);
+                for (int i = 0; i < Main.player.Data.Config.FreightThreshold[Order]; i++)
+                    StationLicense.Add(GetFreightData(name, i));
+                for (int i = 0; i < Main.player.Data.Config.ShuntThreshold[Order]; i++)
+                    StationLicense.Add(GetShuntingData(name, i));
+            }
             return StationLicense;
             
         }

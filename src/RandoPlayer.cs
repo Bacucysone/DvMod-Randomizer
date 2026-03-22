@@ -50,7 +50,18 @@ namespace DvMod.Randomizer
         int VictoryThreshold, 
         bool AlreadyWon,
         string TeleportToStation,
-        HashSet<long> LocationsChecked) {
+        HashSet<long> LocationsChecked,
+        bool HintsOnLocoLicense,
+        bool HintsOnStationLicense) {
+            public class DVConfig(int[] ShuntThreshold, int[] FreightThreshold, int[] LocoJobsThreshold, int Victory, int VictoryThreshold, bool HintsOnLocoLicense, bool HintsOnStationLicense) {
+                public int[] ShuntThreshold = ShuntThreshold;
+                public int[] FreightThreshold = FreightThreshold;
+                public int[] LocoJobsThreshold = LocoJobsThreshold;
+                public int Victory=Victory;
+                public int VictoryThreshold = VictoryThreshold;
+                public bool HintsOnLocoLicense = HintsOnLocoLicense;
+                public bool HintsOnStationLicense = HintsOnStationLicense;
+            }
         public bool[] StationLicenses = StationLicenses;
         public bool[] HiddenGarages = HiddenGarages;
         public bool[] JobLocations = JobLocations;
@@ -59,17 +70,13 @@ namespace DvMod.Randomizer
         public int[] ReceivedRelics = ReceivedRelics;
         public int[] Shunts = Shunts;
         public int Index = Index;
-        public int[] ShuntThreshold = ShuntThreshold;
         public int[] Freights = Freights;
-        public int[] FreightThreshold = FreightThreshold;
         public int[] LocoJobs = LocoJobs;
-        public int[] LocoJobsThreshold = LocoJobsThreshold;
-        public int Victory=Victory;
-        public int VictoryThreshold = VictoryThreshold;
         public bool AlreadyWon = AlreadyWon;
         public int Version = Version;
         public string TeleportToStation = TeleportToStation;
         public HashSet<long> LocationsChecked = LocationsChecked;
+        public DVConfig Config = new(ShuntThreshold, FreightThreshold, LocoJobsThreshold, Victory, VictoryThreshold, HintsOnLocoLicense, HintsOnStationLicense);
     }
     
     public class RandoPlayer
@@ -268,9 +275,9 @@ namespace DvMod.Randomizer
             if (!Data.AlreadyWon) {
                 int StationFinished = 0;
                 for (int i = 0; i < 20; i++) {
-                    if (Data.Shunts[i] + Data.Freights[i] >= Data.VictoryThreshold) StationFinished++;
+                    if (Data.Shunts[i] + Data.Freights[i] >= Data.Config.VictoryThreshold) StationFinished++;
                 }
-                if (StationFinished >= Data.Victory) {
+                if (StationFinished >= Data.Config.Victory) {
                     Terminal.Log(TerminalLogType.Warning, "You won the game!");
                     Data.AlreadyWon = true;
                     Session.SetGoalAchieved();
@@ -285,17 +292,17 @@ namespace DvMod.Randomizer
         }
         public (long, int) FinishLoco(TrainCarType carType) {
             int locoIdx = RandoCommonData.GetOrderFromLocoType(carType);
-            if (Data.LocoJobsThreshold[locoIdx] == Data.LocoJobs[locoIdx]) return (-1L, -1);
+            if (Data.Config.LocoJobsThreshold[locoIdx] == Data.LocoJobs[locoIdx]) return (-1L, -1);
             Data.LocoJobs[locoIdx]++;
-            return (0x600+locoIdx, Data.LocoJobsThreshold[locoIdx] - Data.LocoJobs[locoIdx]);
+            return (0x600+locoIdx, Data.Config.LocoJobsThreshold[locoIdx] - Data.LocoJobs[locoIdx]);
         }
         public (int, int) GetShuntingData(string station) {
             int StIdx = RandoCommonData.GetOrderFromStationName(station);
-            return (Data.Shunts[StIdx], Data.ShuntThreshold[StIdx]);
+            return (Data.Shunts[StIdx], Data.Config.ShuntThreshold[StIdx]);
         }
         public (int, int) GetTransportData(string station) {
             int StIdx = RandoCommonData.GetOrderFromStationName(station);
-            return (Data.Freights[StIdx], Data.FreightThreshold[StIdx]);
+            return (Data.Freights[StIdx], Data.Config.FreightThreshold[StIdx]);
         }
         public (long, int) FinishShunting(string station) {
             if (station == "HMB")
@@ -303,11 +310,11 @@ namespace DvMod.Randomizer
             else if (station == "MFMB")
                 station = "MF";
             int StIdx = RandoCommonData.GetOrderFromStationName(station);
-            if (Data.Shunts[StIdx] == Data.ShuntThreshold[StIdx])
+            if (Data.Shunts[StIdx] == Data.Config.ShuntThreshold[StIdx])
                 return (-1L, -1);
             long checkId = 0x1000+StIdx*0x100+Data.Shunts[StIdx]++;
             CheckVictory();
-            return (checkId, Data.ShuntThreshold[StIdx] - Data.Shunts[StIdx]);
+            return (checkId, Data.Config.ShuntThreshold[StIdx] - Data.Shunts[StIdx]);
         }
         public (long, int) FinishTransport(string station) {
             if (station == "HMB")
@@ -315,11 +322,11 @@ namespace DvMod.Randomizer
             else if (station == "MFMB")
                 station = "MF";
             int StIdx = RandoCommonData.GetOrderFromStationName(station);
-            if (Data.Freights[StIdx] == Data.FreightThreshold[StIdx])
+            if (Data.Freights[StIdx] == Data.Config.FreightThreshold[StIdx])
                 return (-1L, -1);
             long checkId = 0x2500+StIdx*0x100+Data.Freights[StIdx]++;
             CheckVictory();
-            return (checkId, Data.FreightThreshold[StIdx]-Data.Freights[StIdx]);
+            return (checkId, Data.Config.FreightThreshold[StIdx]-Data.Freights[StIdx]);
             
         }
 
