@@ -9,12 +9,14 @@ namespace DvMod.Randomizer {
             Main.player!.deathLinkService!.SendDeathLink(new(Main.player.Session.Players.ActivePlayer.Name, "derailed"));
         }
         public static void Derail(DeathLink _) => PlayerManager.Car?.Derail();
-        public static void Prefix(TrainCar newCar, TrainCar ___Car) {
+        public static void Prefix(TrainCar newCar) {
             if (Main.player == null) return;
-            if (newCar == ___Car) return;
+            if (newCar == PlayerManager.Car) return;
             if (!Main.player.Data.Config.DeathLink) return;
-            newCar.OnDerailed += SendDeathLink;
-            ___Car.OnDerailed -= SendDeathLink;
+            if (newCar != null)
+                newCar.OnDerailed += SendDeathLink;
+            if (PlayerManager.Car != null)
+                PlayerManager.Car.OnDerailed -= SendDeathLink;
         }
     }
 }

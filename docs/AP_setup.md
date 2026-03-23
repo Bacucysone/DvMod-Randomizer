@@ -37,6 +37,12 @@ For both of these choices, if the starting loco is a steam one (S060 or S282), y
 - **Number of finished stations required to beat the game**: As the name implies, to win the game, you need to finish a set number of stations, that you can specify here. There are 20 stations in the game so you can choose any number between 1 and 20. If you choose another number than 20, the stations that you have to finish are not set. For example, if you chose 15, as soon as you complete your first 15 stations, whatever they are, you will win.
 
 - **Number of jobs required to finish a station**: The other part of the victory condition: "Finishing a station" means performing a sufficient number of jobs (either haul or shunt).
+
+- **Hints for loco license**: Choose whether the item unlocked for a given number of jobs with a loco appear on the corresponding license
+
+- **Hints for station license**: Choose whether the items unlocked for doing jobs in a given station appear on the corresponding license
+
+- **Death Link**: In a multiworld, you can choose to link the death of the players (meaning that if one player dies in its game, all the players who activated death link will also die). In Derail Valley, that consists in derailing. This option does nothing you are the only one who activated deathlink in a multiworld.
 ___
 ### Setup the multiworld
 When all the yaml files of the players are ready, one player has to generate the multiworld. To do so, if a Derail Valley yaml is concerned, you will need the .apworld file (available in the relases section).
