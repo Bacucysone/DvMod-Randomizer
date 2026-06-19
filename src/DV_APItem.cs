@@ -14,6 +14,7 @@ using DV.Simulation.Cars;
 using DV.ThingTypes;
 using DV.ThingTypes.TransitionHelpers;
 using DV.Utils;
+using DvMod.Randomizer.HarmonyPatches;
 using JetBrains.Annotations;
 using UnityEngine;
 
@@ -55,7 +56,7 @@ namespace DvMod.Randomizer {
         protected override string Name => Station+" station license";
         protected override bool AcquireUnconditional() {
             Main.Player.AcquireLicense(Station);
-            MapMarkerPatcher.GotLicense(Station);
+            MapMarkerPatch.GotLicense(Station);
             RandoCommonData.AcquireStationLicense(Station);
             return true;
         }
