@@ -1,4 +1,3 @@
-
 using Archipelago.MultiClient.Net.BounceFeatures.DeathLink;
 using HarmonyLib;
 

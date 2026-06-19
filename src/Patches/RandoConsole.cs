@@ -1,4 +1,3 @@
-using UnityEngine;
 using CommandTerminal;
 using HarmonyLib;
 
@@ -16,8 +15,8 @@ namespace DvMod.Randomizer
                     if (Main.Player.GotStationLicense(currStation)) {
                         Terminal.Log("-"+currStation);
                         static void PrintLine((int , int) val, string message) {
-                            TerminalLogType LineColor = val.Item1 >= val.Item2 ? TerminalLogType.Warning : TerminalLogType.Message;
-                            Terminal.Log(LineColor, message+$":{val.Item1}/{val.Item2}");
+                            TerminalLogType lineColor = val.Item1 >= val.Item2 ? TerminalLogType.Warning : TerminalLogType.Message;
+                            Terminal.Log(lineColor, message+$":{val.Item1}/{val.Item2}");
                         }
                         PrintLine(Main.Player.GetShuntingData(currStation), "Shunting");
                         PrintLine(Main.Player.GetTransportData(currStation), "Transport");

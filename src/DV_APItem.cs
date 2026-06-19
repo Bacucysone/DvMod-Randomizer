@@ -14,13 +14,14 @@ using DV.Simulation.Cars;
 using DV.ThingTypes;
 using DV.ThingTypes.TransitionHelpers;
 using DV.Utils;
+using JetBrains.Annotations;
 using UnityEngine;
 
 namespace DvMod.Randomizer {
     public abstract class DV_APItem(int idx, ItemInfo item) {
-        public int Idx {get;} = idx;
+        [UsedImplicitly] public int Idx {get;} = idx;
         protected ItemInfo Item = item;
-        private readonly bool LocalItem = item.Player.Slot == Main.Player.Session.Players.ActivePlayer.Slot;
+        private readonly bool _localItem = item.Player.Slot == Main.Player.Session.Players.ActivePlayer.Slot;
         public long Id {get => Item.ItemId;}
         public string LocationDisplayName {
             get => Item.Player.Name + " ("+Item.LocationDisplayName+")";
@@ -32,15 +33,15 @@ namespace DvMod.Randomizer {
         
         public async Task Acquire() {
             if (IsObtainable){
-                bool GotItem;
+                bool gotItem;
                 do {
                     while (!WorldStreamingInit.IsLoaded) await Task.Yield();
-                    if (!LocalItem)
+                    if (!_localItem)
                         Main.NotifyPlayer($"You got a {DisplayName} from {LocationDisplayName}");
-                    GotItem = AcquireUnconditional();
+                    gotItem = AcquireUnconditional();
                     await Task.Yield();
-                } while (!GotItem);
-            } else if (!LocalItem)
+                } while (!gotItem);
+            } else if (!_localItem)
                 Main.NotifyPlayer($"You received a {DisplayName} from {LocationDisplayName}, but you cannot have anymore");
             
         }
@@ -67,53 +68,53 @@ namespace DvMod.Randomizer {
     }
     public class AP_GeneralLicense : DV_APItem
     {
-        private readonly GeneralLicenseType_v2 License;
+        private readonly GeneralLicenseType_v2 _license;
         public AP_GeneralLicense(int idx, ItemInfo item) :
             base(idx, item) {
-            GeneralLicenseType_v2[] GLicenseFamily = RandoCommonData.GetGeneralLicenseFromId(Id);
-            int LicenseIdx = 0;
-            while (LicenseIdx < GLicenseFamily.Count() && SingletonBehaviour<LicenseManager>.Instance.IsGeneralLicenseAcquired(GLicenseFamily[LicenseIdx])) LicenseIdx++;
-            License = GLicenseFamily[LicenseIdx == GLicenseFamily.Count() ? LicenseIdx - 1 : LicenseIdx];
+            GeneralLicenseType_v2[] gLicenseFamily = RandoCommonData.GetGeneralLicenseFromId(Id);
+            int licenseIdx = 0;
+            while (licenseIdx < gLicenseFamily.Count() && SingletonBehaviour<LicenseManager>.Instance.IsGeneralLicenseAcquired(gLicenseFamily[licenseIdx])) licenseIdx++;
+            _license = gLicenseFamily[licenseIdx == gLicenseFamily.Count() ? licenseIdx - 1 : licenseIdx];
         }
 
         protected override bool AcquireUnconditional()
         {
-            SingletonBehaviour<LicenseManager>.Instance.AcquireGeneralLicense(License);
-            BookletCreator.CreateLicense(License, Main.Player.Position, Main.Player.Rotation, WorldMover.OriginShiftParent);
+            SingletonBehaviour<LicenseManager>.Instance.AcquireGeneralLicense(_license);
+            BookletCreator.CreateLicense(_license, Main.Player.Position, Main.Player.Rotation, WorldMover.OriginShiftParent);
             return true;
         }  
 
         public override bool IsObtainable
         {
-            get => !SingletonBehaviour<LicenseManager>.Instance.IsGeneralLicenseAcquired(License);
+            get => !SingletonBehaviour<LicenseManager>.Instance.IsGeneralLicenseAcquired(_license);
         }
 
-        protected override string Name => License.ToString();
+        protected override string Name => _license.ToString();
     }
     public class AP_JobLicense : DV_APItem
     {
-        private readonly JobLicenseType_v2 License;
+        private readonly JobLicenseType_v2 _license;
         public AP_JobLicense(int idx, ItemInfo item) :
             base(idx, item) {
-            JobLicenseType_v2[] JLicenseFamily = RandoCommonData.GetJobLicenseFromId(Id).CopyLast();
-            int LicenseIdx = 0;
-            while (LicenseIdx < JLicenseFamily.Count() && SingletonBehaviour<LicenseManager>.Instance.IsJobLicenseAcquired(JLicenseFamily[LicenseIdx])) LicenseIdx++;
-            License = JLicenseFamily[LicenseIdx == JLicenseFamily.Count() ? LicenseIdx - 1 : LicenseIdx];
+            JobLicenseType_v2[] jLicenseFamily = RandoCommonData.GetJobLicenseFromId(Id).CopyLast();
+            int licenseIdx = 0;
+            while (licenseIdx < jLicenseFamily.Count() && SingletonBehaviour<LicenseManager>.Instance.IsJobLicenseAcquired(jLicenseFamily[licenseIdx])) licenseIdx++;
+            _license = jLicenseFamily[licenseIdx == jLicenseFamily.Count() ? licenseIdx - 1 : licenseIdx];
         }
 
         protected override bool AcquireUnconditional()
         {
-            SingletonBehaviour<LicenseManager>.Instance.AcquireJobLicense(License);
-            BookletCreator.CreateLicense(License, Main.Player.Position, Main.Player.Rotation, WorldMover.OriginShiftParent);
+            SingletonBehaviour<LicenseManager>.Instance.AcquireJobLicense(_license);
+            BookletCreator.CreateLicense(_license, Main.Player.Position, Main.Player.Rotation, WorldMover.OriginShiftParent);
             return true;
         }  
 
         public override bool IsObtainable
         {
-            get => !SingletonBehaviour<LicenseManager>.Instance.IsJobLicenseAcquired(License);
+            get => !SingletonBehaviour<LicenseManager>.Instance.IsJobLicenseAcquired(_license);
         }
 
-        protected override string Name => License.ToString();
+        protected override string Name => _license.ToString();
     }
 
     public class AP_PhysicalItem(int idx, ItemInfo item) : DV_APItem(idx, item)
@@ -186,9 +187,9 @@ namespace DvMod.Randomizer {
         protected override string Name => RandoCommonData.GetRelicNameFromId(Id)+" demo loco advancement";
         protected override bool AcquireUnconditional()
         {
-            int RelicLevel = Main.Player.AddRelic(Id);
+            int relicLevel = Main.Player.AddRelic(Id);
             LocoRestorationController controller = RandoCommonData.GetLocoControllerFromId(Id);
-            switch (RelicLevel) {
+            switch (relicLevel) {
                 case 1:
                 //First level relic: Spawn relic in museum
                 TrainCar[] carSpawned = SpawnRelic(controller.garageSpawner.locoSpawnPoint.transform.position,
@@ -213,7 +214,7 @@ namespace DvMod.Randomizer {
                 }
                 break;
                 default:
-                throw new ArgumentException("Relic level not right: "+RelicLevel);
+                throw new ArgumentException("Relic level not right: "+relicLevel);
             }
             return true;
         }

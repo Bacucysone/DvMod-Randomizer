@@ -2,24 +2,19 @@ using System;
 using DV.UI;
 using DV.Utils;
 using HarmonyLib;
+using JetBrains.Annotations;
 using UnityModManagerNet;
 
 
 namespace DvMod.Randomizer
 {
-
-    /*[HarmonyPatch(typeof(DevUtil), nameof(DevUtil.IsDevMachine))]
-    public static class DevPatch {
-        public static void Postfix(ref bool __result) => __result = true;
-    }*/
-
     public class Settings : UnityModManager.ModSettings, IDrawable {
         [Draw("Server address")] public string serverName = "localhost";
         [Draw("Port")] public int Port = 38281;
         [Draw("Slot name (Must correspond to the name given to the Archipelago Server)")] public string User="";
         [Draw("Password (leave blank if no password)")] public string Password = "";
         [Draw("Create a new Archipelago save on new career save?")]public bool CreateAPSave = false;
-        [Draw("When continuing a file, connection information are stored in the file. Set this to true to use the provided authentication credentials instead.")]public bool ForceUseSave = false;
+        [Obsolete] [Draw("When continuing a file, connection information are stored in the file. Set this to true to use the provided authentication credentials instead.")]public bool ForceUseSave = false;
         public override void Save(UnityModManager.ModEntry mod){
             Save(this, mod);
         }
@@ -28,8 +23,9 @@ namespace DvMod.Randomizer
 
     public class Main {
         public const int VERSION = 2;
-        public static Settings settings;
-        public static UnityModManager.ModEntry mod;
+        public static Settings Settings;
+        public static UnityModManager.ModEntry Mod;
+        // ReSharper disable once InconsistentNaming
         private static RandoPlayer _player;
         public static RandoPlayer Player => _player ?? throw new NullReferenceException();
         public static bool IsConnected => _player != null;
@@ -43,19 +39,20 @@ namespace DvMod.Randomizer
             _player.Dispose();
             _player = null;
         }
+        [UsedImplicitly]
         public static void Load(UnityModManager.ModEntry modEntry)
         {
-            settings = Settings.Load<Settings>(modEntry);
-            mod = modEntry;
-            mod.OnToggle = OnToggle;
-            mod.OnGUI += OnGUI;
-            mod.OnSaveGUI += OnSaveGUI;
+            Settings = Settings.Load<Settings>(modEntry);
+            Mod = modEntry;
+            Mod.OnToggle = OnToggle;
+            Mod.OnGUI += OnGUI;
+            Mod.OnSaveGUI += OnSaveGUI;
         }
         public static void OnGUI(UnityModManager.ModEntry modEntry) {
-            settings!.Draw(modEntry);
+            Settings!.Draw(modEntry);
         }
         public static void OnSaveGUI(UnityModManager.ModEntry modEntry) {
-            settings!.Save(modEntry);
+            Settings!.Save(modEntry);
         }
 
         private static bool OnToggle(UnityModManager.ModEntry modEntry, bool value)
@@ -74,10 +71,10 @@ namespace DvMod.Randomizer
         }
 
         public static void Log(string message) {
-            mod!.Logger.Log(message);
+            Mod!.Logger.Log(message);
         }
         public static void Error(string message) {
-            mod!.Logger.Error(message);
+            Mod!.Logger.Error(message);
         }
         public static void NotifyPlayer(string message) {
             SingletonBehaviour<ACanvasController<CanvasController.ElementType>>.Instance.NotificationManager.ShowNotification(

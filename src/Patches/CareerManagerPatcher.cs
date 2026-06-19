@@ -61,22 +61,22 @@ namespace DvMod.Randomizer
             float price;
             ItemInfo item;
             if (___generalLicenseToBuy != null) {
-                (long Id, int _) = RandoCommonData.GetIDFromGeneralLicense(___generalLicenseToBuy);
-                item = Main.Player.UnlockCheck(Id);
-                Main.Player.CheckGLicense(Id);
+                (long id, int _) = RandoCommonData.GetIDFromGeneralLicense(___generalLicenseToBuy);
+                item = Main.Player.UnlockCheck(id);
+                Main.Player.CheckGLicense(id);
                 price = ___generalLicenseToBuy.price;
             } else {
-                (long Id, int _) = RandoCommonData.GetIDFromJobLicense(___jobLicenseToBuy);
-                item = Main.Player.UnlockCheck(Id);
-                Main.Player.CheckJLicense(Id);
+                (long id, int _) = RandoCommonData.GetIDFromJobLicense(___jobLicenseToBuy);
+                item = Main.Player.UnlockCheck(id);
+                Main.Player.CheckJLicense(id);
                 price = ___jobLicenseToBuy.price;
             }
-            CashRegisterModule ToPrint = new GenericThingCashRegisterModule();
+            CashRegisterModule toPrint = new GenericThingCashRegisterModule();
             string itemName = item.ItemDisplayName+" ("+item.Player.Name+")";
-            ToPrint.Data.unitsToBuy = 1;
-            ToPrint.Data.pricePerUnit = price;
-            ToPrint.Data.resourceName = itemName;
-            BookletCreator.CreateCashRegisterReceipt([ToPrint], __instance.licensePrinter.spawnAnchor.position, __instance.licensePrinter.spawnAnchor.rotation, WorldMover.OriginShiftParent);
+            toPrint.Data.unitsToBuy = 1;
+            toPrint.Data.pricePerUnit = price;
+            toPrint.Data.resourceName = itemName;
+            BookletCreator.CreateCashRegisterReceipt([toPrint], __instance.licensePrinter.spawnAnchor.position, __instance.licensePrinter.spawnAnchor.rotation, WorldMover.OriginShiftParent);
             __instance.licensePrinter.Print();
             __instance.screenSwitcher.SetActiveDisplay(__instance.licensesScreen);
             return false; 

@@ -1,19 +1,15 @@
 using System.Collections.Generic;
-using System.Drawing.Text;
 using DV;
-using DV.Logic.Job;
-using DV.ServicePenalty.UI;
 using DV.ThingTypes;
 using DV.ThingTypes.TransitionHelpers;
 using DV.UI;
 using DV.Utils;
 using HarmonyLib;
-using UnityEngine;
 
 namespace DvMod.Randomizer {
     [HarmonyPatch(typeof(StationLocoSpawner), nameof(StationLocoSpawner.Update))]
     public static class StationLocoSpawnPatch {
-        private static bool RefreshLocos = false;
+        private static bool RefreshLocos;
         public static void DoRefresh() {
             RefreshLocos = true;
         }
@@ -50,8 +46,8 @@ namespace DvMod.Randomizer {
         
         public static void Prefix() {
             if (!Main.IsConnected) return;
-            StationController NearestController = StationController.allStations.FindMin(cont => (PlayerManager.PlayerTransform.position - cont.transform.position).magnitude);
-            NearestController?.RegenerateJobs();
+            StationController nearestController = StationController.allStations.FindMin(cont => (PlayerManager.PlayerTransform.position - cont.transform.position).magnitude);
+            nearestController?.RegenerateJobs();
             StationLocoSpawnPatch.DoRefresh();
         }
     }

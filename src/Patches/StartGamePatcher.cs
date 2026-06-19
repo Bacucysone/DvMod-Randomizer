@@ -1,11 +1,8 @@
 using System;
 using System.Collections;
-using System.Linq;
-using DV;
 using DV.Common;
 using DV.JObjectExtstensions;
 using DV.Scenarios.Common;
-using DV.TerrainSystem;
 using DV.UI;
 using DV.UserManagement;
 using DV.Utils;
@@ -77,7 +74,7 @@ namespace DvMod.Randomizer
         }
         [HarmonyPrefix, HarmonyPatch(nameof(StartGameData_NewCareer.PrepareNewSaveData))]
         public static bool Prefix(StartGameData_NewCareer __instance, ref SaveGameData saveGameData, IGameSession session, IDifficulty difficultyParams) {
-            if (!Main.settings!.CreateAPSave) return true;
+            if (!Main.Settings!.CreateAPSave) return true;
             try {
                 Main.Connect(null);
             } catch (TimeoutException) {
@@ -91,9 +88,9 @@ namespace DvMod.Randomizer
             saveGameData.SetString("Game_mode", session.GameMode);
             saveGameData.SetString("World", session.World);
             saveGameData.SetDouble("Starting_time_and_date", AStartGameData.BaseTimeAndDate.ToOADate());
-            IDifficulty DifficultyToUse = difficultyParams ?? DifficultyParamsSetter.Standard;
-            DifficultyParamsSetter.SetDifficultyParams(DifficultyToUse);
-            session.PerformGameplayEntryDifficultyCheck(DifficultyToUse);
+            IDifficulty difficultyToUse = difficultyParams ?? DifficultyParamsSetter.Standard;
+            DifficultyParamsSetter.SetDifficultyParams(difficultyToUse);
+            session.PerformGameplayEntryDifficultyCheck(difficultyToUse);
             //SingletonBehaviour<CoroutineManager>.Instance.Run(TeleportPlayer());
             //__instance.DifficultyToUse = DifficultyToUse;
             saveGameData.SetFloat("Player_money", Main.Player.SlotData.Money);

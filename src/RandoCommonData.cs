@@ -1,18 +1,12 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Archipelago.MultiClient.Net.DataPackage;
 using Archipelago.MultiClient.Net.Enums;
 using Archipelago.MultiClient.Net.Models;
 using DV.Booklets;
 using DV.CabControls;
-using DV.InventorySystem;
 using DV.LocoRestoration;
-using DV.Shops;
-using DV.Teleporters;
 using DV.ThingTypes;
 using DV.ThingTypes.TransitionHelpers;
 using DV.Utils;
@@ -22,26 +16,26 @@ namespace DvMod.Randomizer
 {
     public static class RandoCommonData {
         public static class AP_ID {
-            public static long ITEMS = 0x100;
-            public static long SLICENSES = 0x200;
-            public static long GLICENSES = 0x300;
-            public static long JLICENSES = 0x310;
-            public static long RELIC = 0x350;
-            public static long GARAGES = 0x360;
-            public static long LOC_RELIC_PARTS = 0x620;
-            public static long LOC_RELIC_PAINTED = 0x630;
-            public static long LOC_GENERAL_LICENSES = 0x660;
-            public static long LOC_JOB_LICENSES = 0x670;
-            public static long LOC_LOCO_RESTORATION = 0x400;
-            public static long LOC_LOCO_NB_JOBS = 0x600;
+            public const long ITEMS = 0x100;
+            public const long SLICENSES = 0x200;
+            public const long GLICENSES = 0x300;
+            public const long JLICENSES = 0x310;
+            public const long RELIC = 0x350;
+            public const long GARAGES = 0x360;
+            public const long LOC_RELIC_PARTS = 0x620;
+            public const long LOC_RELIC_PAINTED = 0x630;
+            public const long LOC_GENERAL_LICENSES = 0x660;
+            public const long LOC_JOB_LICENSES = 0x670;
+            public const long LOC_LOCO_RESTORATION = 0x400;
+            public const long LOC_LOCO_NB_JOBS = 0x600;
 
         }
         public static Sprite GetStationSprite(string name) {
             if (name.Equals("HMB")) name = "HB";
             else if (name.Equals("MFMB")) name = "MF";
             Texture2D icon = new(4,4);
-            ImageConversion.LoadImage(icon, File.ReadAllBytes(Path.Combine(Main.mod!.Path,"icons", $"icon_{name}.png")));
-            return Sprite.Create(icon, new(0,0,256,256), new(0.5f, 0.5f));
+            ImageConversion.LoadImage(icon, File.ReadAllBytes(Path.Combine(Main.Mod!.Path,"icons", $"icon_{name}.png")));
+            return Sprite.Create(icon, new Rect(0,0,256,256), new Vector2(0.5f, 0.5f));
         }
         private static readonly Dictionary<string, int> StationOrder = new() {{"CME", 0}, {"CMS",1}, {"CP",2}, {"CS",3}, {"CW",4}, {"FF",5}, {"FM",6}, {"FRC",7}, {"FRS",8}, {"GF",9}, {"HB",10}, {"HMB", 10}, {"IME",11}, {"IMW",12}, {"MB",13}, {"MF",14}, {"MFMB", 14}, {"OR",15}, {"OWC",16}, {"OWN",17}, {"SM",18}, {"SW",19}};
         private static readonly Dictionary<TrainCarType, int> TrainTypeOrder = new() {
@@ -65,7 +59,7 @@ namespace DvMod.Randomizer
             return elem;
         }
         public static T[] CopyLast<T>(this T[] list) {
-            if (list.Count() == 0) return [];
+            if (!list.Any()) return [];
             return [.. list, list.Last()];
         }
         public static string GetFromFlags(ItemFlags flags) {
@@ -91,66 +85,66 @@ namespace DvMod.Randomizer
         public readonly struct SpawnPoint(string n, float x, float y, float z)
         {
             public string Name { get; } = n;
-            public Vector3 Position { get; } = new Vector3(x, y, z);
+            public Vector3 Position { get; } = new(x, y, z);
         }
         private static readonly List<SpawnPoint> AddressToLocoRestorationLocation = [
-    		new SpawnPoint("CP Shed / A6S", 2216.55f, 145.119f, 9034.95f),
-    		new SpawnPoint("CME green building", 15632.13f, 204.28f, 11162.54f),
-    		new SpawnPoint("CP Shed / A4S", 1852.979f, 145.119f, 9329.24f),
-    		new SpawnPoint("CP / A6S North", 2160.51f, 145.119f, 9042.45f),
-    		new SpawnPoint("CMS / A2L", 8514.341f, 156.3079f, 3552.408f),
-    		new SpawnPoint("SM Service Shed", 8038.72f, 131.86f, 7127.34f),
-    		new SpawnPoint("GF Loco Spawn Shed right", 13087.57f, 140.093f, 11039.52f),
-    		new SpawnPoint("IME / A1L", 15170.11f, 248.2943f, 15437.31f),
-    		new SpawnPoint("HB Loco Spawn", 12923.64f, 113.08f, 3639.59f),
-    		new SpawnPoint("HB D yard Shed", 13518.51f, 112.97f, 3495.79f),
-    		new SpawnPoint("IMW / B8L North", 2113.4f, 133.69f, 13433.45f),
-    		new SpawnPoint("GF /A3S", 13176.75f, 140.093f, 11059.94f),
-    		new SpawnPoint("CP / A6S South", 2253.34f, 145.119f, 8853.61f),
-    		new SpawnPoint("FRS / B1L", 5325.05f, 174.74f, 3785.03f),
-    		new SpawnPoint("SM / A6I", 7925.49f, 131.86f, 7188.08f),
-    		new SpawnPoint("HB Shop", 13427.02f, 112.97f, 3622.94f),
-    		new SpawnPoint("FF B yard", 9521.979f, 119.2f, 13465.91f),
-    		new SpawnPoint("GF South exit", 12582.31f, 110.51f, 10648.67f),
-    		new SpawnPoint("CW Plaza B yard", 1862.01f, 122.323f, 5450.5f),
-    		new SpawnPoint("HB Roundhouse", 12788.12f, 113.08f, 3601.81f),
-    		new SpawnPoint("OWC / A1L", 4929.6f, 122.96f, 6324.2f),
-    		new SpawnPoint("CP / A4S", 1856.359f, 145.119f, 9288.9f),
-    		new SpawnPoint("SM / A4S", 7924.46f, 131.86f, 7112.42f),
-    		new SpawnPoint("SW / C1O Shed", 1309.609f, 147.27f, 2193.77f),
-    		new SpawnPoint("GF / C1SP", 13021.11f, 140.093f, 11083.36f),
-    		new SpawnPoint("HB / F4SP", 13380.01f, 112.97f, 3542.92f),
-    		new SpawnPoint("FF C yard between buildings", 9400.66f, 120.8f, 13476.36f),
-    		new SpawnPoint("GF Loco Spawn Shed left", 13066.43f, 140.093f, 11023.47f),
-    		new SpawnPoint("MF Roundhouse East", 2212.609f, 159.193f, 10615.77f),
-    		new SpawnPoint("OWN Service Shed", 11535.71f, 122.24f, 11628.09f),
-    		new SpawnPoint("CW / C6L", 1823.676f, 122.213f, 5664.788f),
-    		new SpawnPoint("CS / A1LP", 10017.58f, 134.73f, 1378.58f),
-    		new SpawnPoint("OR / A4S", 6552.149f, 143.92f, 11473.41f),
-    		new SpawnPoint("CW/OWC middle triangle", 3320.215f, 112.935f, 5688.702f),
-    		new SpawnPoint("CW NE of B yard", 1924.729f, 122.213f, 5567.21f),
-    		new SpawnPoint("SM / A3S", 7917.89f, 131.73f, 7247.16f),
-    		new SpawnPoint("FM / A3L", 6007.85f, 123.89f, 6639.3f),
-    		new SpawnPoint("IMW / B8L South", 2193.83f, 133.69f, 13333.51f),
-    		new SpawnPoint("OR / A6S", 6568.97f, 143.92f, 11452.62f),
-    		new SpawnPoint("FF / D1L", 9369.199f, 120.78f, 13418.32f),
-    		new SpawnPoint("FF Service shed", 9327.21f, 119.2f, 13358.35f),
-    		new SpawnPoint("CMS brick building", 8498.551f, 156.3079f, 3233.249f),
-    		new SpawnPoint("FF Turntable", 9381.989f, 119.2f, 13330.21f),
-    		new SpawnPoint("CS Museum", 10274.72f, 134.73f, 1443.29f),
-    		new SpawnPoint("IMW SE of Office", 2185.58f, 133.69f, 13195.64f),
-    		new SpawnPoint("CP / A1S", 2004.42f, 145.119f, 8912.18f),
-    		new SpawnPoint("HB D yard shed", 13279.06f, 112.97f, 3437.66f),
-    		new SpawnPoint("SM W/ A7L 1", 7848.25f, 131.73f, 7213.14f),
-    		new SpawnPoint("HB F yard East", 13764.49f, 112.97f, 3556.25f),
-    		new SpawnPoint("OR / B7S", 6394.12f, 143.92f, 11365.58f),
-    		new SpawnPoint("OR / A3S", 6452.59f, 143.92f, 11230.71f),
-    		new SpawnPoint("SM / A7L 2", 7863.1f, 131.73f, 7208.11f),
-    		new SpawnPoint("MF Roundhouse East 2", 2278.24f, 159.193f, 10676.87f),
-    		new SpawnPoint("FRC C yard North", 5759.84f, 144.91f, 9003.39f),
-    		new SpawnPoint("CW East exit", 2243.05f, 111.01f, 5699.65f),
-    		new SpawnPoint("CME Coal Mine", 15552.81f, 181.5f, 11033.37f),
-    		new SpawnPoint("MF Roundhouse West", 2267.709f, 159.193f, 10657.35f)
+    		new("CP Shed / A6S", 2216.55f, 145.119f, 9034.95f),
+    		new("CME green building", 15632.13f, 204.28f, 11162.54f),
+    		new("CP Shed / A4S", 1852.979f, 145.119f, 9329.24f),
+    		new("CP / A6S North", 2160.51f, 145.119f, 9042.45f),
+    		new("CMS / A2L", 8514.341f, 156.3079f, 3552.408f),
+    		new("SM Service Shed", 8038.72f, 131.86f, 7127.34f),
+    		new("GF Loco Spawn Shed right", 13087.57f, 140.093f, 11039.52f),
+    		new("IME / A1L", 15170.11f, 248.2943f, 15437.31f),
+    		new("HB Loco Spawn", 12923.64f, 113.08f, 3639.59f),
+    		new("HB D yard Shed", 13518.51f, 112.97f, 3495.79f),
+    		new("IMW / B8L North", 2113.4f, 133.69f, 13433.45f),
+    		new("GF /A3S", 13176.75f, 140.093f, 11059.94f),
+    		new("CP / A6S South", 2253.34f, 145.119f, 8853.61f),
+    		new("FRS / B1L", 5325.05f, 174.74f, 3785.03f),
+    		new("SM / A6I", 7925.49f, 131.86f, 7188.08f),
+    		new("HB Shop", 13427.02f, 112.97f, 3622.94f),
+    		new("FF B yard", 9521.979f, 119.2f, 13465.91f),
+    		new("GF South exit", 12582.31f, 110.51f, 10648.67f),
+    		new("CW Plaza B yard", 1862.01f, 122.323f, 5450.5f),
+    		new("HB Roundhouse", 12788.12f, 113.08f, 3601.81f),
+    		new("OWC / A1L", 4929.6f, 122.96f, 6324.2f),
+    		new("CP / A4S", 1856.359f, 145.119f, 9288.9f),
+    		new("SM / A4S", 7924.46f, 131.86f, 7112.42f),
+    		new("SW / C1O Shed", 1309.609f, 147.27f, 2193.77f),
+    		new("GF / C1SP", 13021.11f, 140.093f, 11083.36f),
+    		new("HB / F4SP", 13380.01f, 112.97f, 3542.92f),
+    		new("FF C yard between buildings", 9400.66f, 120.8f, 13476.36f),
+    		new("GF Loco Spawn Shed left", 13066.43f, 140.093f, 11023.47f),
+    		new("MF Roundhouse East", 2212.609f, 159.193f, 10615.77f),
+    		new("OWN Service Shed", 11535.71f, 122.24f, 11628.09f),
+    		new("CW / C6L", 1823.676f, 122.213f, 5664.788f),
+    		new("CS / A1LP", 10017.58f, 134.73f, 1378.58f),
+    		new("OR / A4S", 6552.149f, 143.92f, 11473.41f),
+    		new("CW/OWC middle triangle", 3320.215f, 112.935f, 5688.702f),
+    		new("CW NE of B yard", 1924.729f, 122.213f, 5567.21f),
+    		new("SM / A3S", 7917.89f, 131.73f, 7247.16f),
+    		new("FM / A3L", 6007.85f, 123.89f, 6639.3f),
+    		new("IMW / B8L South", 2193.83f, 133.69f, 13333.51f),
+    		new("OR / A6S", 6568.97f, 143.92f, 11452.62f),
+    		new("FF / D1L", 9369.199f, 120.78f, 13418.32f),
+    		new("FF Service shed", 9327.21f, 119.2f, 13358.35f),
+    		new("CMS brick building", 8498.551f, 156.3079f, 3233.249f),
+    		new("FF Turntable", 9381.989f, 119.2f, 13330.21f),
+    		new("CS Museum", 10274.72f, 134.73f, 1443.29f),
+    		new("IMW SE of Office", 2185.58f, 133.69f, 13195.64f),
+    		new("CP / A1S", 2004.42f, 145.119f, 8912.18f),
+    		new("HB D yard shed", 13279.06f, 112.97f, 3437.66f),
+    		new("SM W/ A7L 1", 7848.25f, 131.73f, 7213.14f),
+    		new("HB F yard East", 13764.49f, 112.97f, 3556.25f),
+    		new("OR / B7S", 6394.12f, 143.92f, 11365.58f),
+    		new("OR / A3S", 6452.59f, 143.92f, 11230.71f),
+    		new("SM / A7L 2", 7863.1f, 131.73f, 7208.11f),
+    		new("MF Roundhouse East 2", 2278.24f, 159.193f, 10676.87f),
+    		new("FRC C yard North", 5759.84f, 144.91f, 9003.39f),
+    		new("CW East exit", 2243.05f, 111.01f, 5699.65f),
+    		new("CME Coal Mine", 15552.81f, 181.5f, 11033.37f),
+    		new("MF Roundhouse West", 2267.709f, 159.193f, 10657.35f)
     	];
         public static Vector3 GetInfoRestorationFromLocoLocationOrder(int idx) {
             return AddressToLocoRestorationLocation[idx].Position;
@@ -432,27 +426,21 @@ namespace DvMod.Randomizer
             {GeneralLicenseType.TrainDriver, 12},
             {GeneralLicenseType.NotSet, -3}
         };
-        private readonly struct ShopLocationEntry(string n, Vector3 p) {
+        /*private readonly struct ShopLocationEntry(string n, Vector3 p) {
             public string Name {get;} = n;
             public Vector3 Position {get;} = p;
         }
         private static readonly List<ShopLocationEntry> allShops = [
-            new("shop_MF", new(2232.3f,159.3f,10833.6f)),
-            new("shop_CW", new(1915.9f,122.3f,5784.7f)),
-            new("shop_FF", new(9533.7f,119.3f,13419.2f)),
-            new("shop_HB", new(13423f,113.1f,3617.3f)),
-            new("shop_GF", new(13032.2f,140.2f,11163.5f))
+            new("shop_MF", new Vector3(2232.3f,159.3f,10833.6f)),
+            new("shop_CW", new Vector3(1915.9f,122.3f,5784.7f)),
+            new("shop_FF", new Vector3(9533.7f,119.3f,13419.2f)),
+            new("shop_HB", new Vector3(13423f,113.1f,3617.3f)),
+            new("shop_GF", new Vector3(13032.2f,140.2f,11163.5f))
         ];
         public static string GetNearestShop(Vector3 position) {
-            string shop = "";
-            float distance = float.PositiveInfinity;
-            foreach (ShopLocationEntry entry in allShops) {
-                if ((position-entry.Position).magnitude < distance) {
-                    shop = entry.Name;
-                }
-            }
-            return shop.Substring(5);
+            return allShops.FindMin(entry => (position-entry.Position).magnitude).Name.Substring(5)
         }
+        
         private static readonly List<string> UniqueItems = ["AmpLimiter",
             "AntiWheelslipComputer",
             "AutomaticTrainStop",
@@ -541,7 +529,7 @@ namespace DvMod.Randomizer
             "ProximitySensor",
             "Stopwatch",
             "SunVisor",
-            "UniversalControlStand"];
+            "UniversalControlStand"]; */
 
         private static readonly JobLicenses[][] IdToJobLicense = [
             [JobLicenses.FreightHaul], 
@@ -566,9 +554,9 @@ namespace DvMod.Randomizer
             [GeneralLicenseType.ManualService], 
             [GeneralLicenseType.ConcurrentJobs1, GeneralLicenseType.ConcurrentJobs2]
         ];
-        public static string GetStationNameFromOrder(long Order) {
+        public static string GetStationNameFromOrder(long order) {
             foreach (KeyValuePair<string, int> item in StationOrder) {
-                if (item.Value == Order) return item.Key;
+                if (item.Value == order) return item.Key;
             }
             return "";
         }
@@ -609,16 +597,16 @@ namespace DvMod.Randomizer
                 return [];
             }
         }
-        public static GeneralLicenseType_v2 GetGeneralLicenseLocFromId(long Id) {
+        public static GeneralLicenseType_v2 GetGeneralLicenseLocFromId(long id) {
             foreach (KeyValuePair<GeneralLicenseType, int> x in GeneralLocationsToOrder) {
-                if (x.Value == (Id - AP_ID.LOC_GENERAL_LICENSES))
+                if (x.Value == (id - AP_ID.LOC_GENERAL_LICENSES))
                     return x.Key.ToV2();
             }
             return GeneralLicenseType.NotSet.ToV2();
         }
-        public static JobLicenseType_v2 GetJobLicenseLocFromId(long Id) {
+        public static JobLicenseType_v2 GetJobLicenseLocFromId(long id) {
             foreach (KeyValuePair<JobLicenses, int> x in JobLocationsToOrder) {
-                if (x.Value == (Id - AP_ID.LOC_GENERAL_LICENSES))
+                if (x.Value == (id - AP_ID.LOC_GENERAL_LICENSES))
                     return x.Key.ToV2();
             }
             return JobLicenses.Basic.ToV2();
@@ -679,7 +667,7 @@ namespace DvMod.Randomizer
             };
         }
         private static CashRegisterModule.CashRegisterModuleData GetFreightData(string name, int idx) {
-            return new() {
+            return new CashRegisterModule.CashRegisterModuleData {
                 unitsToBuy=idx+1,
                 pricePerUnit=0,
                 resourceName="Freight n°"+(idx+1)+": "+Main.Player.GetItemNameFromLocationId(0x4000+GetOrderFromStationName(name)*0x100+idx, true),
@@ -688,7 +676,7 @@ namespace DvMod.Randomizer
             };
         }
         private static CashRegisterModule.CashRegisterModuleData GetShuntingData(string name, int idx) {
-            return new() {
+            return new CashRegisterModule.CashRegisterModuleData {
                 unitsToBuy=idx+1,
                 pricePerUnit=0,
                 resourceName="Shunting n°"+(idx+1)+": "+Main.Player.GetItemNameFromLocationId(0x2000+GetOrderFromStationName(name)*0x100+idx, true),
@@ -697,7 +685,7 @@ namespace DvMod.Randomizer
             };
         }
         public static List<CashRegisterModule.CashRegisterModuleData> GetStationLicenseData(string name) {
-            List<CashRegisterModule.CashRegisterModuleData> StationLicense = [new() {
+            List<CashRegisterModule.CashRegisterModuleData> stationLicense = [new() {
                 unitsToBuy=1,
                 pricePerUnit=0,
                 resourceName=name+" station license",
@@ -705,13 +693,13 @@ namespace DvMod.Randomizer
                 car=null
             }];
             if (Main.Player.Config.HintsOnStationLicense) {
-                int Order = GetOrderFromStationName(name);
-                for (int i = 0; i < Main.Player.Config.FreightThreshold[Order]; i++)
-                    StationLicense.Add(GetFreightData(name, i));
-                for (int i = 0; i < Main.Player.Config.ShuntThreshold[Order]; i++)
-                    StationLicense.Add(GetShuntingData(name, i));
+                int order = GetOrderFromStationName(name);
+                for (int i = 0; i < Main.Player.Config.FreightThreshold[order]; i++)
+                    stationLicense.Add(GetFreightData(name, i));
+                for (int i = 0; i < Main.Player.Config.ShuntThreshold[order]; i++)
+                    stationLicense.Add(GetShuntingData(name, i));
             }
-            return StationLicense;
+            return stationLicense;
             
         }
         public static void AcquireStationLicense(string name) {
@@ -723,14 +711,14 @@ namespace DvMod.Randomizer
             ItemBase component = item.GetComponent<ItemBase>();
             SingletonBehaviour<StorageController>.Instance.AddItemToWorldStorage(component);
         }
-        public static string GetStationNameFromFinishingJobId(long Id) {
-            return GetStationNameFromOrder((Id & 0x1F00)>>8);
+        public static string GetStationNameFromFinishingJobId(long id) {
+            return GetStationNameFromOrder((id & 0x1F00)>>8);
         }
-        public static long ComputeCheckForJob(bool IsShunting, string Station, int nb) {
+        public static long ComputeCheckForJob(bool isShunting, string station, int nb) {
             long check = 0x2000;
-            if (!IsShunting)
+            if (!isShunting)
                 check += 0x2000;
-            return check + 0x100 * GetOrderFromStationName(Station) + nb;
+            return check + 0x100 * GetOrderFromStationName(station) + nb;
         }
         public static DV_APItem GetAPItem(int idx, ItemInfo item) {
             return item.ItemId switch {
@@ -746,8 +734,8 @@ namespace DvMod.Randomizer
                 _ => throw new ArgumentException($"Invalid item id: {item.ItemId}")
             };
         }
-        public static GarageType_v2 GetGarageFromId(long Id) {
-            return Id switch {
+        public static GarageType_v2 GetGarageFromId(long id) {
+            return id switch {
                 0x360 or 0x692 => Garage.Bob.ToV2(),
                 0x361 or 0x691=> Garage.Caboose.ToV2(),
                 0x362 or 0x690=> Garage.DE6_Slug.ToV2(),
