@@ -38,16 +38,16 @@ namespace DvMod.Randomizer
 
     public class JobFinishState {
         public bool HasWon;
-        public ItemInfo? Item_job1;
-        public ItemInfo? Item_job2;
-        public ItemInfo? Item_loco;
+        public ItemInfo Item_job1;
+        public ItemInfo Item_job2;
+        public ItemInfo Item_loco;
         public int RemainingForVictory;
         public int RemainingJobs;
         public int RemainingOtherJobs;
         public int RemainingLoco;
         public bool GotStationLicense;
         public bool IsShunting;
-        public string? Station;
+        public string Station;
         public TrainCarType? LastCar;
         public int Tokens;
     }
@@ -167,8 +167,8 @@ namespace DvMod.Randomizer
         private static PauseMenu Menu => UnityEngine.Object.FindObjectOfType<PauseMenu>();
         public ArchipelagoSession Session;
         public APSlotData SlotData {get;}
-        public event Action? UpdateEvent;
-        public DeathLinkService? deathLinkService = null;
+        public event Action UpdateEvent;
+        public DeathLinkService deathLinkService = null;
         
 
         public bool AddLocation(long id) {
@@ -203,7 +203,7 @@ namespace DvMod.Randomizer
             Menu.controller.ExitLevelRequested += Main.Disconnect;
             Menu.controller.QuitGameRequested += Main.Disconnect;
         }
-        public RandoPlayer(RandoSaveData? saveData) {
+        public RandoPlayer(RandoSaveData saveData) {
             bool UseGivenAuth = saveData == null || Main.settings!.ForceUseSave;
             (string Server, string Password, string SlotName, int Port) = UseGivenAuth ?
                     (Main.settings!.serverName, Main.settings.Password, Main.settings.User, Main.settings.Port):
@@ -351,12 +351,12 @@ namespace DvMod.Randomizer
                 };
             }
 
-            (int Remaining, ItemInfo? Item1) = IsShunting ? FinishShunting(Station) : FinishTransport(Station);
+            (int Remaining, ItemInfo Item1) = IsShunting ? FinishShunting(Station) : FinishTransport(Station);
             (int OtherRem, int otherMax) = IsShunting ? GetTransportData(Station) : GetShuntingData(Station);
-            (int RemainingLoco, ItemInfo? ItemLoco) = FinishLoco(PlayerManager.LastLoco);
+            (int RemainingLoco, ItemInfo ItemLoco) = FinishLoco(PlayerManager.LastLoco);
 
-            ItemInfo? Item2 = null;
-            ItemInfo? ItemLoco2 = null;
+            ItemInfo Item2 = null;
+            ItemInfo ItemLoco2 = null;
             int RemainingForVictory = CheckVictory(Station);
             if ((Remaining > 0 || RemainingLoco > 0 || RemainingForVictory > 0) && Data.Tokens > 0) {
                 Data.Tokens--;
@@ -407,11 +407,11 @@ namespace DvMod.Randomizer
         public void AcquireLicense(string Station) {
             Data.StationLicenses[RandoCommonData.GetOrderFromStationName(Station)] = true;
         }
-        public (int, ItemInfo?) FinishLoco(TrainCar car) {
+        public (int, ItemInfo) FinishLoco(TrainCar car) {
             if (car == null) return (-1, null);
             int locoIdx = RandoCommonData.GetOrderFromLocoType(car.carType);
             int Remaining = Data.Config.LocoJobsThreshold[locoIdx] - ++Data.LocoJobs[locoIdx];
-            ItemInfo? item = Remaining == 0 ? UnlockCheck(0x600+locoIdx) : null;
+            ItemInfo item = Remaining == 0 ? UnlockCheck(0x600+locoIdx) : null;
             return (Math.Max(0, Remaining), item);
         }
         public (int, int) GetShuntingData(string station) {
@@ -426,7 +426,7 @@ namespace DvMod.Randomizer
             int StIdx = RandoCommonData.GetOrderFromStationName(station);
             return (Data.Freights[StIdx]+Data.Shunts[StIdx], Data.Config.VictoryThreshold);
         }
-        public (int, ItemInfo?) FinishShunting(string station) {
+        public (int, ItemInfo) FinishShunting(string station) {
             int StOrder = RandoCommonData.GetOrderFromStationName(station);
             Data.Shunts[StOrder] += 1;
             int Remaining = Data.Config.ShuntThreshold[StOrder] - Data.Shunts[StOrder];
@@ -435,7 +435,7 @@ namespace DvMod.Randomizer
             }
             return (Math.Max(Remaining,0), null);
         }
-        public (int, ItemInfo?) FinishTransport(string station) {
+        public (int, ItemInfo) FinishTransport(string station) {
             int StOrder = RandoCommonData.GetOrderFromStationName(station);
             Data.Freights[StOrder] += 1;
             int Remaining = Data.Config.FreightThreshold[StOrder] - Data.Freights[StOrder];

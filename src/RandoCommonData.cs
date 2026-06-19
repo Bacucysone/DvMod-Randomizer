@@ -53,7 +53,7 @@ namespace DvMod.Randomizer
             {TrainCarType.LocoSteamHeavy, 5},
             {TrainCarType.Tender, 5}
             };
-        public static T? FindMin<T>(this IEnumerable<T> list, Func<T, float> fDist) {
+        public static T FindMin<T>(this IEnumerable<T> list, Func<T, float> fDist) {
             T elem = list.FirstOrDefault();
             float val = float.PositiveInfinity;
             foreach (T x in list) {

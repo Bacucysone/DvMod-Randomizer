@@ -50,7 +50,7 @@ namespace DvMod.Randomizer {
         
         public static void Prefix() {
             if (!Main.IsConnected) return;
-            StationController? NearestController = StationController.allStations.FindMin(cont => (PlayerManager.PlayerTransform.position - cont.transform.position).magnitude);
+            StationController NearestController = StationController.allStations.FindMin(cont => (PlayerManager.PlayerTransform.position - cont.transform.position).magnitude);
             NearestController?.RegenerateJobs();
             StationLocoSpawnPatch.DoRefresh();
         }

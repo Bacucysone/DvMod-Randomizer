@@ -28,19 +28,19 @@ namespace DvMod.Randomizer
 
     public class Main {
         public const int VERSION = 2;
-        public static Settings? settings;
-        public static UnityModManager.ModEntry? mod;
-        private static RandoPlayer? _player;
+        public static Settings settings;
+        public static UnityModManager.ModEntry mod;
+        private static RandoPlayer _player;
         public static RandoPlayer Player => _player ?? throw new NullReferenceException();
         public static bool IsConnected => _player != null;
 
-        public static void Connect(RandoSaveData? saveData) {
-            if (IsConnected) _player!.Dispose();
+        public static void Connect(RandoSaveData saveData) {
+            if (IsConnected) _player.Dispose();
             _player = new RandoPlayer(saveData);
         }
         public static void Disconnect() {
             if (!IsConnected) return;
-            _player!.Dispose();
+            _player.Dispose();
             _player = null;
         }
         public static void Load(UnityModManager.ModEntry modEntry)

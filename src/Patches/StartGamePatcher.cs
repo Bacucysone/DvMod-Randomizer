@@ -31,7 +31,7 @@ namespace DvMod.Randomizer
         [HarmonyPostfix, HarmonyPatch("Initialize")]
         public static void SaveLoadingEndPatch(SaveGameData ___saveGameData, bool __state) {
             if (__state) return;
-            RandoSaveData? data = ___saveGameData.GetObject<RandoSaveData>("RandoData");
+            RandoSaveData data = ___saveGameData.GetObject<RandoSaveData>("RandoData");
             if (data == null) {
                 Main.Log("Launching game in normal mode");
                 return;

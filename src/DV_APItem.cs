@@ -174,7 +174,7 @@ namespace DvMod.Randomizer {
         }
     }
     public class AP_RelicLoco(int idx, ItemInfo item) : DV_APItem(idx, item) {
-        private static PaintTheme? AbandonedThemeCache;
+        private static PaintTheme AbandonedThemeCache;
 
         private static PaintTheme AbandonedTheme {
             get {
