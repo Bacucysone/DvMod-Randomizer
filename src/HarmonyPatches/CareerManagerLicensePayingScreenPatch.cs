@@ -22,14 +22,14 @@ public class CareerManagerLicensePayingScreenPatch {
         float price;
         ItemInfo item;
         if (___generalLicenseToBuy != null) {
-            (long id, int _) = RandoCommonData.GetIDFromGeneralLicense(___generalLicenseToBuy);
+            long id = RandoCommonData.GetIdFromGeneralLicense(___generalLicenseToBuy);
             item = Main.Player.UnlockCheck(id);
-            Main.Player.CheckGLicense(id);
+            Main.Player.CheckGLicense(___generalLicenseToBuy);
             price = ___generalLicenseToBuy.price;
         } else {
-            (long id, int _) = RandoCommonData.GetIDFromJobLicense(___jobLicenseToBuy);
+            long id = RandoCommonData.GetIdFromJobLicense(___jobLicenseToBuy);
             item = Main.Player.UnlockCheck(id);
-            Main.Player.CheckJLicense(id);
+            Main.Player.CheckJLicense(___jobLicenseToBuy);
             price = ___jobLicenseToBuy.price;
         }
         CashRegisterModule toPrint = new GenericThingCashRegisterModule();

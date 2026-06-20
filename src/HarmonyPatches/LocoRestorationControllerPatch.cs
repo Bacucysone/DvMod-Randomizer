@@ -24,7 +24,7 @@ public static class LocoRestorationControllerPatch {
     public static IEnumerator DeliverPartCoro_Postfix(IEnumerator originalMethod, TrainCar ___loco, LocoRestorationController __instance) {
         yield return originalMethod;
         if (!Main.IsConnected) yield break;
-        Main.Player.UnlockCheck(RandoCommonData.AP_ID.LOC_RELIC_PARTS+RandoCommonData.GetOrderFromLocoType(___loco.carType));
+        Main.Player.UnlockCheck(RandoCommonData.GetRelicPartsToMuseumIdFromLoco(___loco.carType));
         if (Main.Player.CanFinishRelic(___loco.carType)) yield break;
         __instance.installPartsModule.ThingBought -= __instance.OnInstallPartsPaid;
         __instance.installPartsModule.SetUnitsToBuy(0f);
@@ -32,6 +32,6 @@ public static class LocoRestorationControllerPatch {
 
     [HarmonyPostfix, HarmonyPatch("SetupListenersForPaintJob")]
     public static void SetupListenersForPaintJob_Postfix(TrainCar ___loco, bool on) {
-        if (Main.IsConnected && !on) Main.Player.UnlockCheck(RandoCommonData.AP_ID.LOC_RELIC_PAINTED+RandoCommonData.GetOrderFromLocoType(___loco.carType));
+        if (Main.IsConnected && !on) Main.Player.UnlockCheck(RandoCommonData.GetRelicPaintedIdFromLoco(___loco.carType));
     }
 }

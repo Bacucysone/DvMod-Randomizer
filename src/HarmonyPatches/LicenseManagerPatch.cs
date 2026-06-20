@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using DV;
-using DV.RenderTextureSystem.BookletRender;
 using DV.ThingTypes;
 using HarmonyLib;
 
