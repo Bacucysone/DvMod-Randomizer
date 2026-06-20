@@ -14,8 +14,16 @@ using UnityEngine;
 
 namespace DvMod.Randomizer;
 
+/// <summary>
+/// Class that contains all the information necessary to map items or events in game to AP id or index
+/// used by the mod. If changes are made to such information in the future, this class should be the main entry point,
+/// and no other classes should contain hard-coded constant values
+/// </summary>
 public static class RandoCommonData {
 
+    // The following commented code is information about shop randomization.
+    // As this feature is not yet working, this block of code has been disabled for now
+    
     /*private readonly struct ShopLocationEntry(string n, Vector3 p) {
         public string Name {get;} = n;
         public Vector3 Position {get;} = p;
@@ -123,6 +131,7 @@ public static class RandoCommonData {
 
     #region Mappings DV Items/Events -> long id Locations
     
+    //Constant offsets used by Archipelago
     private const long LOC_RELIC_PARTS = 0x620;
     private const long LOC_RELIC_PAINTED = 0x630;
     private const long LOC_GENERAL_LICENSES = 0x660;
@@ -131,17 +140,49 @@ public static class RandoCommonData {
     private const long LOC_LOCO_NB_JOBS = 0x600;
     private const long LOC_GARAGE_UNLOCKED = 0x690;
     
+    /// <summary>
+    /// Array of station name in the order we use for AP (which is alphabetical order)
+    /// </summary>
     private static readonly string[] StationOrder = [
         "CME", "CMS", "CP", "CS", "CW", "FF", "FM", "FRC", "FRS", "GF", "HB", "HMB", "IME", "IMW", "MB", "MF", "MFMB", "OR", "OWC", "OWN", "SM", "SW"
     ];
+    /// <summary>
+    /// Direct mapping order -> station name
+    /// </summary>
+    /// <param name="order">The requested order</param>
+    /// <returns></returns>
     public static string GetStationNameFromOrder(int order) => StationOrder.ElementAtOrDefault(order);
+    /// <summary>
+    /// Reverse mapping order &lt;- station name
+    /// </summary>
+    /// <param name="name">The requested station name</param>
+    /// <returns>The corresponding index</returns>
     public static int GetOrderFromStationName(string name) => Array.IndexOf(StationOrder, name);
     
+    /// <summary>
+    /// Get AP location Id for finish enough jobs with a given locomotive
+    /// </summary>
+    /// <param name="order">The requested index</param>
+    /// <returns>The corresponding id</returns>
     public static long GetLocoNbJobsIdFromOrder(int order) => order + LOC_LOCO_NB_JOBS;
     
+    /// <summary>
+    /// Get AP location Id for painting a demonstrator locomotive
+    /// </summary>
+    /// <param name="carType">The requested locomotive type</param>
+    /// <returns>The corresponding id</returns>
     public static long GetRelicPaintedIdFromLoco(TrainCarType carType) => GetOrderFromLocoType(carType) + LOC_RELIC_PAINTED;
+    
+    /// <summary>
+    /// Get AP location Id for bringing back the bought spare parts of demonstrator locomotive
+    /// </summary>
+    /// <param name="carType">The requested locomotive type</param>
+    /// <returns>The corresponding id</returns>
     public static long GetRelicPartsToMuseumIdFromLoco(TrainCarType carType) => GetOrderFromLocoType(carType) + LOC_RELIC_PARTS;
     
+    /// <summary>
+    /// Array of car types in the order we use them in Archipelago
+    /// </summary>
     private static readonly TrainCarType[] TrainTypeOrder = [
         TrainCarType.LocoShunter, 
         TrainCarType.LocoDM3, 
@@ -151,7 +192,17 @@ public static class RandoCommonData {
         TrainCarType.LocoSteamHeavy, 
         TrainCarType.Tender
     ];
+    /// <summary>
+    /// Direct mapping order -> car type
+    /// </summary>
+    /// <param name="order">The requested index</param>
+    /// <returns>The corresponding car type</returns>
     public static TrainCarType GetCarTypeFromOrder(int order) => TrainTypeOrder.ElementAtOrDefault(order);
+    /// <summary>
+    /// Reverse mapping order &lt;- car type
+    /// </summary>
+    /// <param name="carType">The requested car type</param>
+    /// <returns>The corresponding order</returns>
     public static int GetOrderFromLocoType(TrainCarType carType) => Array.IndexOf(TrainTypeOrder, carType);
     
     public static int GetOrderFromLocoLicense(GeneralLicenseType_v2 license) {
