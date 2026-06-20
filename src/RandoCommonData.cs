@@ -129,6 +129,7 @@ public static class RandoCommonData {
     private const long LOC_JOB_LICENSES = 0x670;
     private const long LOC_LOCO_RESTORATION = 0x400;
     private const long LOC_LOCO_NB_JOBS = 0x600;
+    private const long LOC_GARAGE_UNLOCKED = 0x690;
     
     private static readonly string[] StationOrder = [
         "CME", "CMS", "CP", "CS", "CW", "FF", "FM", "FRC", "FRS", "GF", "HB", "HMB", "IME", "IMW", "MB", "MF", "MFMB", "OR", "OWC", "OWN", "SM", "SW"
@@ -246,16 +247,12 @@ public static class RandoCommonData {
         return sPoint.Name.Substring(0, n);
     }
     
-    
-    
     public static long ComputeCheckForJob(bool isShunting, string station, int nb) {
         long check = 0x2000;
         if (!isShunting)
             check += 0x2000;
         return check + 0x100 * GetOrderFromStationName(station) + nb;
     }
-    
-    
     
     private static readonly JobLicenses[] JobLocationsOrder = [
         JobLicenses.Shunting, 
@@ -276,6 +273,7 @@ public static class RandoCommonData {
         int order = GetOrderFromJobLicense(jobLicense);
         return order < 0 ? -1L : order + LOC_JOB_LICENSES;
     }
+    public static long GetIdLocoJobsFromOrder(int order) => LOC_LOCO_NB_JOBS + order;
     public static JobLicenseType_v2 GetJobLicenseFromId(long id) =>
         JobLocationsOrder.ElementAtOrDefault(id.Offset(LOC_JOB_LICENSES)).ToV2();
     
@@ -354,7 +352,10 @@ public static class RandoCommonData {
             return [];
         }
     }
-    
+    public static long GetIdFromGarage(GarageType_v2 garage) {
+        int order = GetOrderFromGarage(garage);
+        return order < 0 ? -1L : LOC_GARAGE_UNLOCKED + order;
+    }
     private static readonly JobLicenses[][] IdToJobLicense = [
         [JobLicenses.FreightHaul], 
         [JobLicenses.LogisticalHaul], 
@@ -651,6 +652,7 @@ public static class RandoCommonData {
             Garage.DM1U => 3,
             _ => -1
         };
+    
     #endregion
     #region Display names utilities
 
