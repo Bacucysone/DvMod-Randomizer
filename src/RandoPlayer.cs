@@ -134,7 +134,7 @@ public class RandoPlayer
     public Quaternion Rotation => PlayerManager.ActiveCamera.transform.rotation;
     public RandoSaveData Data {get;}
     public DVConfig Config => Data.Config;
-    private readonly ConcurrentQueue<DV_APItem> _waitingQueue = new();
+    private readonly ConcurrentQueue<ArchipelagoItem> _waitingQueue = new();
     private static PauseMenu Menu => UnityEngine.Object.FindObjectOfType<PauseMenu>();
     public ArchipelagoSession Session;
     public APSlotData SlotData {get;}
@@ -185,7 +185,7 @@ public class RandoPlayer
         if (Data.Index < itemNumberReceived) {
             Main.Log($"Re-syncing...");
             for (int id = Data.Index ; id < itemNumberReceived; id++) {
-                DV_APItem item = RandoCommonData.GetAPItem(id, Session.Items.AllItemsReceived[id]);
+                ArchipelagoItem item = RandoCommonData.GetAPItem(id, Session.Items.AllItemsReceived[id]);
                 _waitingQueue.Enqueue(item);
             }
             Data.Index = itemNumberReceived;
@@ -263,7 +263,7 @@ public class RandoPlayer
         }
     }
     private void ProcessItems() {
-        if (_waitingQueue.TryDequeue(out DV_APItem item)){
+        if (_waitingQueue.TryDequeue(out ArchipelagoItem item)){
             item.Acquire().Wait();
         }
     }

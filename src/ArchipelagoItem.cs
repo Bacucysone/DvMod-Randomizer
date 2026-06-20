@@ -20,19 +20,14 @@ using UnityEngine;
 
 namespace DvMod.Randomizer;
 
-public abstract class DV_APItem(int idx, ItemInfo item) {
+public abstract class ArchipelagoItem(int idx, ItemInfo item) {
     [UsedImplicitly] public int Idx {get;} = idx;
-    protected ItemInfo Item = item;
+    protected readonly ItemInfo Item = item;
     private readonly bool _localItem = item.Player.Slot == Main.Player.Session.Players.ActivePlayer.Slot;
-    public long Id {get => Item.ItemId;}
-    public string LocationDisplayName {
-        get => Item.Player.Name + " ("+Item.LocationDisplayName+")";
-    }
-    protected abstract string Name {get;}
-    public string DisplayName {
-        get => Name+RandoCommonData.GetFromFlags(Item.Flags);
-    }
-        
+    public long Id => Item.ItemId;
+    public string LocationDisplayName => Item.Player.Name + " ("+Item.LocationDisplayName+")";
+    public string DisplayName => Item.ItemDisplayName;
+
     public async Task Acquire() {
         if (IsObtainable){
             bool gotItem;
@@ -51,10 +46,9 @@ public abstract class DV_APItem(int idx, ItemInfo item) {
     public abstract bool IsObtainable {get;}
 }
 
-public class AP_StationLicense(int idx, ItemInfo item) : DV_APItem(idx, item)
+public class AP_StationLicense(int idx, ItemInfo item) : ArchipelagoItem(idx, item)
 {
     private string Station => RandoCommonData.GetStationNameFromId(Id);
-    protected override string Name => Station+" station license";
     protected override bool AcquireUnconditional() {
         Main.Player.AcquireLicense(Station);
         MapMarkerPatch.GotLicense(Station);
@@ -63,12 +57,9 @@ public class AP_StationLicense(int idx, ItemInfo item) : DV_APItem(idx, item)
     }
         
         
-    public override bool IsObtainable
-    {
-        get => !Main.Player.GotStationLicense(Station);
-    }
+    public override bool IsObtainable => !Main.Player.GotStationLicense(Station);
 }
-public class AP_GeneralLicense : DV_APItem
+public class AP_GeneralLicense : ArchipelagoItem
 {
     private readonly GeneralLicenseType_v2 _license;
     public AP_GeneralLicense(int idx, ItemInfo item) :
@@ -86,14 +77,10 @@ public class AP_GeneralLicense : DV_APItem
         return true;
     }  
 
-    public override bool IsObtainable
-    {
-        get => !SingletonBehaviour<LicenseManager>.Instance.IsGeneralLicenseAcquired(_license);
-    }
-
-    protected override string Name => _license.ToString();
+    public override bool IsObtainable => !SingletonBehaviour<LicenseManager>.Instance.IsGeneralLicenseAcquired(_license);
 }
-public class AP_JobLicense : DV_APItem
+
+public class AP_JobLicense : ArchipelagoItem
 {
     private readonly JobLicenseType_v2 _license;
     public AP_JobLicense(int idx, ItemInfo item) :
@@ -111,17 +98,12 @@ public class AP_JobLicense : DV_APItem
         return true;
     }  
 
-    public override bool IsObtainable
-    {
-        get => !SingletonBehaviour<LicenseManager>.Instance.IsJobLicenseAcquired(_license);
-    }
-
-    protected override string Name => _license.ToString();
+    public override bool IsObtainable => !SingletonBehaviour<LicenseManager>.Instance.IsJobLicenseAcquired(_license);
+    
 }
 
-public class AP_PhysicalItem(int idx, ItemInfo item) : DV_APItem(idx, item)
+public class AP_PhysicalItem(int idx, ItemInfo item) : ArchipelagoItem(idx, item)
 {
-    protected override string Name => RandoCommonData.GetItemPrefabFromId(Id);
     protected override bool AcquireUnconditional()
     {
         InventoryItemSpec spec = Globals.G.Items.items.Find(sc => sc.itemPrefabName.Equals(DisplayName));
@@ -132,16 +114,12 @@ public class AP_PhysicalItem(int idx, ItemInfo item) : DV_APItem(idx, item)
         return true;
     }
 
-    public override bool IsObtainable
-    {
-        get => true;
-    }
+    public override bool IsObtainable => true;
 }
-public class AP_DoubleToken(int idx, ItemInfo item) : DV_APItem(idx, item)
+public class AP_DoubleToken(int idx, ItemInfo item) : ArchipelagoItem(idx, item)
 {
     public override bool IsObtainable => true;
-
-    protected override string Name => "Double Job Token";
+    
 
     protected override bool AcquireUnconditional() { 
         Main.Player.AddToken();
@@ -150,33 +128,26 @@ public class AP_DoubleToken(int idx, ItemInfo item) : DV_APItem(idx, item)
     }
         
 }
-public class AP_Money(int idx, ItemInfo item) : DV_APItem(idx, item)
+public class AP_Money(int idx, ItemInfo item) : ArchipelagoItem(idx, item)
 {
-    protected override string Name => "Money";
     protected override bool AcquireUnconditional()
     {
         SingletonBehaviour<Inventory>.Instance.AddMoney(5000);
         return true;
     }
-    public override bool IsObtainable
-    {
-        get => true;
-    }
+    public override bool IsObtainable => true;
 }
 
-public class AP_Nothing(int idx, ItemInfo item) : DV_APItem(idx, item)
+public class AP_Nothing(int idx, ItemInfo item) : ArchipelagoItem(idx, item)
 {
-    protected override string Name => "Nothing";
     protected override bool AcquireUnconditional()
     {
         throw new ArgumentException("Cannot acquire a nothing item!");
     }
-    public override bool IsObtainable
-    {
-        get => false;
-    }
+    public override bool IsObtainable => false;
 }
-public class AP_RelicLoco(int idx, ItemInfo item) : DV_APItem(idx, item) {
+
+public class AP_RelicLoco(int idx, ItemInfo item) : ArchipelagoItem(idx, item) {
     private static PaintTheme AbandonedThemeCache;
 
     private static PaintTheme AbandonedTheme {
@@ -185,8 +156,7 @@ public class AP_RelicLoco(int idx, ItemInfo item) : DV_APItem(idx, item) {
             return AbandonedThemeCache;
         }
     }
-
-    protected override string Name => RandoCommonData.GetRelicNameFromId(Id)+" demo loco advancement";
+    
     protected override bool AcquireUnconditional()
     {
         int relicLevel = Main.Player.AddRelic(Id);
@@ -260,21 +230,14 @@ public class AP_RelicLoco(int idx, ItemInfo item) : DV_APItem(idx, item) {
         SingletonBehaviour<CarSpawner>.Instance.useCarPooling = true;
         return ret;
     }
-    public override bool IsObtainable
-    {
-        get => !Main.Player.CanFinishRelic(Id);
-    }
+    public override bool IsObtainable => !Main.Player.CanFinishRelic(Id);
 }
 
-public class AP_CrewVehicle(int idx, ItemInfo item) : DV_APItem(idx, item)
+public class AP_CrewVehicle(int idx, ItemInfo item) : ArchipelagoItem(idx, item)
 {
     protected override bool AcquireUnconditional(){
         Main.Player.UnlockGarage(RandoCommonData.GetGarageFromId(Id));
         return true;
     }
-    public override bool IsObtainable
-    {
-        get => !Main.Player.HasUnlocked(RandoCommonData.GetGarageFromId(Id));
-    }
-    protected override string Name => RandoCommonData.GetNameFromGarageID(Id)+" spawn rights";
+    public override bool IsObtainable => !Main.Player.HasUnlocked(RandoCommonData.GetGarageFromId(Id));
 }

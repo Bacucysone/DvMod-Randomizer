@@ -311,7 +311,7 @@ public static class RandoCommonData {
     public const long RELIC = 0x350;
     public const long GARAGES = 0x360;
     
-    public static DV_APItem GetAPItem(int idx, ItemInfo item) {
+    public static ArchipelagoItem GetAPItem(int idx, ItemInfo item) {
         return item.ItemId switch {
             -1 => new AP_Nothing(idx, item),
             1 => new AP_Money(idx, item),
