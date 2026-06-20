@@ -2,6 +2,11 @@
 	"Releases": [
         {
 			"Id": "Randomizer",
+			"Version": "0.2.3",
+			"DownloadUrl": "https://github.com/Bacucysone/DvMod-Randomizer/releases/download/v.0.2.3/Randomizer.zip"
+		},
+		{
+			"Id": "Randomizer",
 			"Version": "0.2.2",
 			"DownloadUrl": "https://github.com/Bacucysone/DvMod-Randomizer/releases/download/v.0.2.2/Randomizer.zip"
 		},
