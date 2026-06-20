@@ -20,6 +20,8 @@ using System.Collections;
 using DV.OriginShift;
 using Archipelago.MultiClient.Net.Packets;
 using Archipelago.MultiClient.Net.BounceFeatures.DeathLink;
+using DV.JObjectExtstensions;
+using DvMod.Randomizer.HarmonyPatches;
 
 namespace DvMod.Randomizer;
 
@@ -165,7 +167,41 @@ public class RandoPlayer
     public APSlotData SlotData {get;}
     public event Action UpdateEvent;
     public DeathLinkService deathLinkService ;
+
+    private void KeyBindControl() {
+        if (Input.GetKeyDown("[0]")) {
+            Input.ResetInputAxes();
+            LocoRestorationControllerPatch.IsIgnoring = true;
+            CarsSaveManager.DeleteAllExistingCars();
+            for (int i = 0; i < 6; i++) {
+                if (Data.ReceivedRelics[i] == 0) continue;
+                TrainCarLivery carLivery = RandoCommonData.GetCarTypeFromOrder(i).ToV2();
+                LocoRestorationController controller = LocoRestorationController.GetForLivery(carLivery);
+                
+                TrainCar[] carSpawned = AP_RelicLoco.SpawnRelic(
+                    controller.garageSpawner.locoSpawnPoint.transform.position,
+                    controller.locoLivery, controller.garageSpawner.flipSpawnLoco);
+                foreach (TrainCar car in carSpawned) AP_RelicLoco.SetupRelic(car);
+                controller.loco = carSpawned[0];
+                controller.saveData.SetString("loco", controller.loco.CarGUID);
+
+                if (controller.secondCarLivery != null) {
+                    controller.secondCar = carSpawned[1];
+                    controller.saveData.SetString("secondCar", controller.secondCar!.CarGUID);
+                }
+
+                controller.SetState(LocoRestorationController.RestorationState.S4_OnDestinationTrack);
+
+            }
+            LocoRestorationControllerPatch.IsIgnoring = false;
+        }
+        else if (Input.GetKeyDown("[1]"))
+        {
+            Input.ResetInputAxes();
+            LocoRestorationController.GetForLivery(TrainCarType.LocoDM3.ToV2()).OnPartsOrdered();
+        }
         
+    }
 
     public bool AddLocation(long id) {
         return Data.LocationsChecked.Add(id);
@@ -193,6 +229,7 @@ public class RandoPlayer
             if (!Data.LocoLocations[i])
                 UpdateEvent += new DemoLocoListener(i).CheckPosition;
         }
+        UpdateEvent += KeyBindControl;
     }
     private IEnumerator Subscribe() {
         while (Menu == null) yield return null;

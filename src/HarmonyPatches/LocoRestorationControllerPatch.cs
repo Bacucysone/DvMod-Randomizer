@@ -7,7 +7,11 @@ namespace DvMod.Randomizer.HarmonyPatches;
 
 [HarmonyPatch(typeof(LocoRestorationController))]
 public static class LocoRestorationControllerPatch {
-        
+
+    public static bool IsIgnoring = false;
+    [HarmonyPrefix, HarmonyPatch(nameof(LocoRestorationController.OnUnexpectedDestroy))]
+    public static bool OnUnexpectedDestroy_Prefix() => !IsIgnoring;
+    
     [HarmonyPostfix, HarmonyPatch("Start")]
     public static IEnumerator Start_Postfix(IEnumerator originalMethod, LocoRestorationController __instance) {
         yield return originalMethod; 
