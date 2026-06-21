@@ -2,7 +2,10 @@ using Archipelago.MultiClient.Net.BounceFeatures.DeathLink;
 using HarmonyLib;
 
 namespace DvMod.Randomizer;
-
+/// <summary>
+/// Allows for deathlink (when activated, when a death occurs somewhere in AP multiworld, a deathlink is sent to all registered players)
+/// In case of Derail Valley, "death" is derailing
+/// </summary>
 [HarmonyPatch(typeof(PlayerManager), nameof(PlayerManager.SetCar))]
 public class DeathLinkPatch {
     private static void SendDeathLink(TrainCar _) {

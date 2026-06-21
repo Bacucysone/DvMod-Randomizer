@@ -5,7 +5,9 @@ using HarmonyLib;
 using UnityEngine.SceneManagement;
 
 namespace DvMod.Randomizer.HarmonyPatches;
-
+/// <summary>
+/// Prepare randomizer save data when starting a save file
+/// </summary>
 [HarmonyPatch(typeof(StartGameData_FromSaveGame))]
 public class StartGameData_FromSaveGamePatch {
     private static void ExitWithMessage(string message) {

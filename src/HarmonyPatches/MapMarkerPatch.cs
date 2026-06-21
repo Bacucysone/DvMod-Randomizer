@@ -13,6 +13,9 @@ public class MapMarkerPatch {
     private static readonly MapMarker[] AllMarkers = new MapMarker[20];
     private static readonly int ColorStringId = Shader.PropertyToID("_Color");
 
+    /// <summary>
+    /// When drawing the map item, we change the color of station markers (green the user has the station license, red they does not)
+    /// </summary>
     [HarmonyPostfix, HarmonyPatch(nameof(MapMarker.Init))]
     public static void Init_Postfix(MapMarker __instance) {
         if (!Main.IsConnected ||
@@ -27,7 +30,9 @@ public class MapMarkerPatch {
         else
             NoLicense(stationName);
     }
-    
+    /// <summary>
+    /// Allows for dynamic color change if the user gets a station license while playing
+    /// </summary>
     private static IEnumerator ChangeMarkerColor(int order, Color color) {
         while (AllMarkers[order]==null) yield return null;
         MeshRenderer renderer = AllMarkers[order].GetComponentInChildren<MeshRenderer>();

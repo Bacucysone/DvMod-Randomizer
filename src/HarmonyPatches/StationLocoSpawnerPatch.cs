@@ -6,13 +6,20 @@ using DV.Utils;
 using HarmonyLib;
 
 namespace DvMod.Randomizer.HarmonyPatches;
+/* 
+ * This part allow for respawning the locomotives in a station when sleeping
+ * As it is, it destroys more cars than necessary (pretty much every locomotive on station track)
+ * Free teleport between station is recommended, as such, it is not so hard to find a desired locomotive
+ * This feature is turned off for now
+ */
 
+/*
 [HarmonyPatch(typeof(StationLocoSpawner))]
 public class StationLocoSpawnerPatch {
     private static bool RefreshLocos;
-    public static void DoRefresh() {
+    public static void DoRefresh() =>
         RefreshLocos = true;
-    }
+    
     private static List<TrainCarLivery> GetRandomLicensedLoco() {
         List<List<TrainCarLivery>> allLiveries = [
             [TrainCarType.LocoShunter.ToV2()],
@@ -38,6 +45,6 @@ public class StationLocoSpawnerPatch {
         SingletonBehaviour<CarSpawner>.Instance.DeleteTrainCarsFromTrack(__instance.locoSpawnTrack);
         SingletonBehaviour<CarSpawner>.Instance.SpawnCarTypesOnTrack(newLoco, null, __instance.locoSpawnTrack, true, true, 0.0, __instance.spawnRotationFlipped);
     }
-}
+}*/
 
 

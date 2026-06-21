@@ -10,6 +10,11 @@ namespace DvMod.Randomizer.HarmonyPatches;
 
 [HarmonyPatch(typeof(BookletCreator_JobReport))]
 public class BookletCreator_JobReportPatch {
+    /// <summary>
+    /// Helper function that adds new information in the correct format
+    /// </summary>
+    /// <param name="mainList">Original list</param>
+    /// <param name="toAdd">Information to add</param>
     private static void AddData(ref List<TemplatePaperData> mainList, List<JobReportTasksTemplatePaperData.JobReportEntry> toAdd) {
         if (toAdd.Count == 0) return;
         TemplatePaperData lastPage = mainList[mainList.Count-2];
@@ -50,7 +55,9 @@ public class BookletCreator_JobReportPatch {
                 
         }
     }
-
+    /// <summary>
+    /// Patch to add Randomizer information on the job report file (items unlock, victory progression)
+    /// </summary>
     [HarmonyPostfix, HarmonyPatch("GetReportTemplateData")]
     public static void GetReportTemplateData_Postfix(ref List<TemplatePaperData> __result, Job_data data) {
         if (!Main.IsConnected) return;

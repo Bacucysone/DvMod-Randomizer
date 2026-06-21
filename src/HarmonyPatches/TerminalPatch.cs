@@ -2,7 +2,14 @@ using CommandTerminal;
 using HarmonyLib;
 
 namespace DvMod.Randomizer.HarmonyPatches;
-
+/// <summary>
+/// Allows for terminal to be able to communicate with AP server 
+/// Besides, add new command to the in-game terminal console (Backquote default keybind)
+/// The commands added are:
+/// <list type="Bullet">
+/// <item><description>/slicenses: lists all owned station licenses and current state of each one (how many jobs were already done)</description></item>
+/// </list>
+/// </summary>
 [HarmonyPatch(typeof(Terminal))]
 public static class TerminalPatch {
     

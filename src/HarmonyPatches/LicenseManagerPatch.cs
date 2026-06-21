@@ -15,7 +15,10 @@ public class LicenseManagerPatch {
         
         return ret;
     }
-    
+    /// <summary>
+    /// Bypasses the original license manager loading data from savefile by removing the automatic checks on tutorial licenses
+    /// (Game forces them in savefile if they do not exist: we do not want that)
+    /// </summary>
     [HarmonyPrefix, HarmonyPatch(nameof(LicenseManager.LoadData))]
     public static bool LoadData_Prefix(SaveGameData data, LicenseManager __instance) {
         if (!Main.IsConnected) return true;

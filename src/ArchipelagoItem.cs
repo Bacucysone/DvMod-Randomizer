@@ -19,21 +19,48 @@ using JetBrains.Annotations;
 using UnityEngine;
 
 namespace DvMod.Randomizer;
-
+/// <summary>
+/// Base class for all archipelago items
+/// </summary>
+/// <param name="idx">Index order of the item in the received items list</param>
+/// <param name="item">Information about item as provided by multiclient.net</param>
 public abstract class ArchipelagoItem(int idx, ItemInfo item) {
+    /// <summary>
+    /// Getter for index order (not yet used)
+    /// </summary>
     [UsedImplicitly] public int Idx {get;} = idx;
+    /// <summary>
+    /// Getter for item info
+    /// </summary>
     protected readonly ItemInfo Item = item;
+    /// <summary>
+    /// True iff the item was found in this instance of derail valley. Only useful for display purposes
+    /// </summary>
     private readonly bool _localItem = item.Player.Slot == Main.Player.Session.Players.ActivePlayer.Slot;
+    /// <summary>
+    /// AP item id of the item
+    /// </summary>
     public long Id => Item.ItemId;
+    /// <summary>
+    /// Display name of the location was found in, and by whom
+    /// </summary>
     public string LocationDisplayName => Item.Player.Name + " ("+Item.LocationDisplayName+")";
+    /// <summary>
+    /// Display name of the item
+    /// </summary>
     public string DisplayName => Item.ItemDisplayName;
 
+    /// <summary>
+    /// Async process to effectively acquire the item
+    /// </summary>
     public async Task Acquire() {
+        // We only try to acquire it if we can
         if (IsObtainable){
             bool gotItem;
             do {
+                // If we spawn in items while the world is not loaded, the game crashes. We do not want the game to crash
                 while (!WorldStreamingInit.IsLoaded) await Task.Yield();
-                if (!_localItem)
+                if (!_localItem) // Additional notification if the item was received by server
                     Main.NotifyPlayer($"You got a {DisplayName} from {LocationDisplayName}");
                 gotItem = AcquireUnconditional();
                 await Task.Yield();
@@ -45,20 +72,27 @@ public abstract class ArchipelagoItem(int idx, ItemInfo item) {
     protected abstract bool AcquireUnconditional();
     public abstract bool IsObtainable {get;}
 }
-
+/// <summary>
+/// Represents the station licenses
+/// </summary>
+/// <param name="idx"></param>
+/// <param name="item"></param>
 public class AP_StationLicense(int idx, ItemInfo item) : ArchipelagoItem(idx, item)
 {
     private string Station => RandoCommonData.GetStationNameFromId(Id);
     protected override bool AcquireUnconditional() {
         Main.Player.AcquireLicense(Station);
         MapMarkerPatch.GotLicense(Station);
-        RandoCommonData.AcquireStationLicense(Station);
+        RandoCommonData.PrintStationLicense(Station);
         return true;
     }
         
         
     public override bool IsObtainable => !Main.Player.GotStationLicense(Station);
 }
+/// <summary>
+/// Represents general licenses (Licenses not required for jobs: locomotives, concurrent jobs, manual service, museum...)
+/// </summary>
 public class AP_GeneralLicense : ArchipelagoItem
 {
     private readonly GeneralLicenseType_v2 _license;
@@ -79,7 +113,9 @@ public class AP_GeneralLicense : ArchipelagoItem
 
     public override bool IsObtainable => !SingletonBehaviour<LicenseManager>.Instance.IsGeneralLicenseAcquired(_license);
 }
-
+/// <summary>
+/// Represents job licenses (Licenses required for some jobs: shunting and transport, military, hazmat, train length...)
+/// </summary>
 public class AP_JobLicense : ArchipelagoItem
 {
     private readonly JobLicenseType_v2 _license;
@@ -101,7 +137,9 @@ public class AP_JobLicense : ArchipelagoItem
     public override bool IsObtainable => !SingletonBehaviour<LicenseManager>.Instance.IsJobLicenseAcquired(_license);
     
 }
-
+/// <summary>
+/// Represents physical in game items (anything that can be bought in shops, and some more)
+/// </summary>
 public class AP_PhysicalItem(int idx, ItemInfo item) : ArchipelagoItem(idx, item)
 {
     protected override bool AcquireUnconditional()
@@ -128,6 +166,9 @@ public class AP_DoubleToken(int idx, ItemInfo item) : ArchipelagoItem(idx, item)
     }
         
 }
+/// <summary>
+/// Represents direct money increase
+/// </summary>
 public class AP_Money(int idx, ItemInfo item) : ArchipelagoItem(idx, item)
 {
     protected override bool AcquireUnconditional()
@@ -137,7 +178,9 @@ public class AP_Money(int idx, ItemInfo item) : ArchipelagoItem(idx, item)
     }
     public override bool IsObtainable => true;
 }
-
+/// <summary>
+/// Represents an AP item that does nothing
+/// </summary>
 public class AP_Nothing(int idx, ItemInfo item) : ArchipelagoItem(idx, item)
 {
     protected override bool AcquireUnconditional()
@@ -146,7 +189,11 @@ public class AP_Nothing(int idx, ItemInfo item) : ArchipelagoItem(idx, item)
     }
     public override bool IsObtainable => false;
 }
-
+/// <summary>
+/// Represents progression towards demonstrator reconstruction (2 for each type of locomotives)
+/// </summary>
+/// <param name="idx"></param>
+/// <param name="item"></param>
 public class AP_RelicLoco(int idx, ItemInfo item) : ArchipelagoItem(idx, item) {
     private static PaintTheme AbandonedThemeCache;
 
@@ -232,7 +279,9 @@ public class AP_RelicLoco(int idx, ItemInfo item) : ArchipelagoItem(idx, item) {
     }
     public override bool IsObtainable => !Main.Player.CanFinishRelic(Id);
 }
-
+/// <summary>
+/// Represents the four hidden garages vehicles spawn rights (BE2, Caboose, DM1U and DE6 slug)
+/// </summary>
 public class AP_CrewVehicle(int idx, ItemInfo item) : ArchipelagoItem(idx, item)
 {
     protected override bool AcquireUnconditional(){

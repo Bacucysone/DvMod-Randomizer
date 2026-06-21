@@ -20,8 +20,6 @@ using System.Collections;
 using DV.OriginShift;
 using Archipelago.MultiClient.Net.Packets;
 using Archipelago.MultiClient.Net.BounceFeatures.DeathLink;
-using DV.JObjectExtstensions;
-using DvMod.Randomizer.HarmonyPatches;
 
 namespace DvMod.Randomizer;
 
@@ -58,7 +56,7 @@ public class DVConfig {
     public bool DeathLink;
 }
 /// <summary>
-/// Data class containing all elements for the randoplayer
+/// Data class containing all elements for the rando-player
 /// </summary>
 public class RandoSaveData {
     public bool[] StationLicenses;
@@ -155,7 +153,7 @@ public class RandoPlayer
             if (Time.time - _lastTime <= _timeThreshold ||
                 (PlayerManager.PlayerTransform.AbsolutePosition() - _locoPosition).magnitude >=
                   _spatialThreshold) return;
-            string stationNeeded = RandoCommonData.GetStationFromLocoLocations(_locoPosition);
+            string stationNeeded = RandoCommonData.GetStationFromLocoLocation(_idx);
             bool stationOk = Main.Player.GotStationLicense(stationNeeded);
             bool museumOk = SingletonBehaviour<LicenseManager>.Instance.IsGeneralLicenseAcquired(GeneralLicenseType.MuseumCitySouth.ToV2());
             if (stationOk && museumOk) {
@@ -508,7 +506,7 @@ public class RandoPlayer
         ++Data.ReceivedRelics[RandoCommonData.GetOrderFromRelicId(id)];
     
     /// <summary>
-    /// Register when a station license has bee acquired
+    /// Register when a station license has been acquired
     /// </summary>
     /// <param name="station">The station name of the acquired license</param>
     public void AcquireLicense(string station) =>

@@ -7,11 +7,10 @@ namespace DvMod.Randomizer.HarmonyPatches;
 
 [HarmonyPatch(typeof(LocoRestorationController))]
 public static class LocoRestorationControllerPatch {
-
-    public static bool IsIgnoring = false;
-    [HarmonyPrefix, HarmonyPatch(nameof(LocoRestorationController.OnUnexpectedDestroy))]
-    public static bool OnUnexpectedDestroy_Prefix() => !IsIgnoring;
     
+    /// <summary>
+    /// If the controller did not find a locomotive, it forces spawn a new one. We delete the new locomotive in case it happens
+    /// </summary>
     [HarmonyPostfix, HarmonyPatch("Start")]
     public static IEnumerator Start_Postfix(IEnumerator originalMethod, LocoRestorationController __instance) {
         yield return originalMethod; 
@@ -24,6 +23,9 @@ public static class LocoRestorationControllerPatch {
         SingletonBehaviour<CarSpawner>.Instance.DeleteCar(__instance.secondCar);
     }
     
+    /// <summary>
+    /// Simple listener: When the user brings back the parts, we also send a location check to AP server
+    /// </summary>
     [HarmonyPostfix, HarmonyPatch("DeliverPartCoro")]
     public static IEnumerator DeliverPartCoro_Postfix(IEnumerator originalMethod, TrainCar ___loco, LocoRestorationController __instance) {
         yield return originalMethod;
@@ -34,6 +36,9 @@ public static class LocoRestorationControllerPatch {
         __instance.installPartsModule.SetUnitsToBuy(0f);
     }
 
+    /// <summary>
+    /// Simple listener: When the user paints the vehicle (last step), we also send a location check to AP server
+    /// </summary>
     [HarmonyPostfix, HarmonyPatch("SetupListenersForPaintJob")]
     public static void SetupListenersForPaintJob_Postfix(TrainCar ___loco, bool on) {
         if (Main.IsConnected && !on) Main.Player.UnlockCheck(RandoCommonData.GetRelicPaintedIdFromLoco(___loco.carType));

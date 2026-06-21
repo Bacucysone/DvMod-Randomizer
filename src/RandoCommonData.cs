@@ -131,7 +131,7 @@ public static class RandoCommonData {
 
     #region Mappings DV Items/Events -> long id Locations
     
-    //Constant offsets used by Archipelago
+    //Constant offsets used by Archipelago for locations
     private const long LOC_RELIC_PARTS = 0x620;
     private const long LOC_RELIC_PAINTED = 0x630;
     private const long LOC_GENERAL_LICENSES = 0x660;
@@ -192,19 +192,18 @@ public static class RandoCommonData {
         TrainCarType.LocoSteamHeavy, 
         TrainCarType.Tender
     ];
-    /// <summary>
-    /// Direct mapping order -> car type
-    /// </summary>
-    /// <param name="order">The requested index</param>
-    /// <returns>The corresponding car type</returns>
-    public static TrainCarType GetCarTypeFromOrder(int order) => TrainTypeOrder.ElementAtOrDefault(order);
+
     /// <summary>
     /// Reverse mapping order &lt;- car type
     /// </summary>
     /// <param name="carType">The requested car type</param>
     /// <returns>The corresponding order</returns>
     public static int GetOrderFromLocoType(TrainCarType carType) => Array.IndexOf(TrainTypeOrder, carType);
-    
+    /// <summary>
+    /// Reverse mapping order $lt;- locomotive license
+    /// </summary>
+    /// <param name="license">The requested license</param>
+    /// <returns>The corresponding order</returns>
     public static int GetOrderFromLocoLicense(GeneralLicenseType_v2 license) {
         if (license == null) return -1;
         return license.v1 switch {
@@ -217,17 +216,24 @@ public static class RandoCommonData {
             _ => -1
         };
     }
-    
+    /// <summary>
+    /// Helper function to get the state of the demonstrator reconstruction quest for a given locomotive type
+    /// </summary>
+    /// <param name="carType">The requested locmotive type</param>
+    /// <returns>The corresponding state</returns>
     public static LocoRestorationController.RestorationState GetState(TrainCarType carType) =>
         LocoRestorationController.allLocoRestorationControllers == null ? 
             LocoRestorationController.RestorationState.S0_Initialized : 
             LocoRestorationController.GetForLivery(carType.ToV2()).State;
     
-        public readonly struct SpawnPoint(string n, float x, float y, float z)
+    public readonly struct SpawnPoint(string n, float x, float y, float z)
     {
         public string Name { get; } = n;
         public Vector3 Position { get; } = new(x, y, z);
     }
+    /// <summary>
+    /// Data list of all possible demonstrator locomotive spawn points, in the order used by archipelago
+    /// </summary>
     private static readonly List<SpawnPoint> AddressToLocoRestorationLocation = [
         new("CP Shed / A6S", 2216.55f, 145.119f, 9034.95f),
         new("CME green building", 15632.13f, 204.28f, 11162.54f),
@@ -287,24 +293,39 @@ public static class RandoCommonData {
         new("CME Coal Mine", 15552.81f, 181.5f, 11033.37f),
         new("MF Roundhouse West", 2267.709f, 159.193f, 10657.35f)
     ];
+    /// <summary>
+    /// Compute the information related to a demonstrator locomotive spawn locations
+    /// </summary>
+    /// <param name="idx">The requested index of the spawn point</param>
+    /// <returns>A tuple (position in world, AP location check id)</returns>
     public static (Vector3, long) GetInfoRestorationFromLocoLocationOrder(int idx) =>
         (AddressToLocoRestorationLocation[idx].Position, idx + LOC_LOCO_RESTORATION);
-    public static int GetIdFromLocoLocations(Vector3 position) =>
-        AddressToLocoRestorationLocation.FindIndex(sp => sp.Position == position);
-    
-    public static string GetStationFromLocoLocations(Vector3 position) {
-        SpawnPoint sPoint = AddressToLocoRestorationLocation.FindMin(sp => (sp.Position - position).magnitude);
+    /// <summary>
+    /// Helper function to get the station name corresponding to a given spawn point
+    /// </summary>
+    /// <param name="idx">The requested spawn point index</param>
+    /// <returns>The station name where the spawn point is located</returns>
+    public static string GetStationFromLocoLocation(int idx) {
+        SpawnPoint sPoint = AddressToLocoRestorationLocation[idx];
         int n = (sPoint.Name[2] == '/' || sPoint.Name[2] == ' ')?2:3;
         return sPoint.Name.Substring(0, n);
     }
-    
+    /// <summary>
+    /// Compute and returns the AP location id related to a job finished
+    /// </summary>
+    /// <param name="isShunting">true if it is a shunting, false if it is a transport job</param>
+    /// <param name="station">The starting station of the job</param>
+    /// <param name="nb">How many jobs of this type have already been finished in this station</param>
+    /// <returns>The corresponding location id</returns>
     public static long ComputeCheckForJob(bool isShunting, string station, int nb) {
         long check = 0x2000;
         if (!isShunting)
             check += 0x2000;
         return check + 0x100 * GetOrderFromStationName(station) + nb;
     }
-    
+    /// <summary>
+    /// List of the buyable job licenses in the order used by archipelago
+    /// </summary>
     private static readonly JobLicenses[] JobLocationsOrder = [
         JobLicenses.Shunting, 
         JobLicenses.LogisticalHaul, 
@@ -319,16 +340,31 @@ public static class RandoCommonData {
         JobLicenses.Military3,
         JobLicenses.FreightHaul, 
     ];
+    /// <summary>
+    /// Reverse mapping order &lt;- job license
+    /// </summary>
+    /// <param name="jobLicense">The requested job license</param>
+    /// <returns>The corresponding order index</returns>
     public static int GetOrderFromJobLicense(JobLicenseType_v2 jobLicense) => Array.IndexOf(JobLocationsOrder, jobLicense.v1);
+    /// <summary>
+    /// Compute AP location id corresponding to buying a given job license
+    /// </summary>
+    /// <param name="jobLicense">The requested job license</param>
+    /// <returns>The corresponding location id</returns>
     public static long GetIdFromJobLicense(JobLicenseType_v2 jobLicense) {
         int order = GetOrderFromJobLicense(jobLicense);
         return order < 0 ? -1L : order + LOC_JOB_LICENSES;
     }
+    /// <summary>
+    /// Compute location id corresponding to finishing enough jobs with a given locomotive
+    /// </summary>
+    /// <param name="order">The order index corresponding to the requested locomotive</param>
+    /// <returns>The location id</returns>
     public static long GetIdLocoJobsFromOrder(int order) => LOC_LOCO_NB_JOBS + order;
-    public static JobLicenseType_v2 GetJobLicenseFromId(long id) =>
-        JobLocationsOrder.ElementAtOrDefault(id.Offset(LOC_JOB_LICENSES)).ToV2();
     
-    
+    /// <summary>
+    /// List of the buyable general licenses in the order used by archipelago
+    /// </summary>
     private static readonly GeneralLicenseType[] GeneralLocationsOrder = [
         GeneralLicenseType.DE2, 
         GeneralLicenseType.DM3, 
@@ -344,17 +380,36 @@ public static class RandoCommonData {
         GeneralLicenseType.Dispatcher1,
         GeneralLicenseType.TrainDriver, 
     ];
+    /// <summary>
+    /// Reverse mapping order &lt;- general license
+    /// </summary>
+    /// <param name="generalLicense">The requested general license</param>
+    /// <returns>The corresponding order index</returns>
     public static int GetOrderFromGeneralLicense(GeneralLicenseType_v2 generalLicense) => Array.IndexOf(GeneralLocationsOrder, generalLicense.v1);
+    /// <summary>
+    /// Compute AP location id corresponding to buying a given general license
+    /// </summary>
+    /// <param name="generalLicense">The requested general license</param>
+    /// <returns>The corresponding location id</returns>
     public static long GetIdFromGeneralLicense(GeneralLicenseType_v2 generalLicense) {
         int order = GetOrderFromGeneralLicense(generalLicense);
         return order < 0 ? -1L : order + LOC_GENERAL_LICENSES;
     }
-    public static GeneralLicenseType_v2 GetGeneralLicenseFromId(long id) =>
-        GeneralLocationsOrder.ElementAtOrDefault(id.Offset(LOC_GENERAL_LICENSES)).ToV2();
+    
+    /// <summary>
+    /// Compute the location id related to opening a garage
+    /// </summary>
+    /// <param name="garage">The garage opened</param>
+    /// <returns>The corresponding location id, or -1 if the garage is not unlockable</returns>
+    public static long GetIdFromGarage(GarageType_v2 garage) {
+        int order = GetOrderFromGarage(garage);
+        return order < 0 ? -1L : LOC_GARAGE_UNLOCKED + order;
+    }
     
     #endregion
     #region Mappings long id Items -> DV ITems/Events
     
+    // Constant offsets used for AP item id
     public const long ITEMS = 0x100;
     public const long SLICENSES = 0x200;
     public const long GLICENSES = 0x300;
@@ -362,6 +417,13 @@ public static class RandoCommonData {
     public const long RELIC = 0x350;
     public const long GARAGES = 0x360;
     
+    /// <summary>
+    /// Compute the usable Archipelago item
+    /// </summary>
+    /// <param name="idx">Index of this item in the received items list</param>
+    /// <param name="item">Item data structure as provided by multiclient.net</param>
+    /// <returns>The ArchipelagoItem version of the given item</returns>
+    /// <exception cref="ArgumentException">Thrown when the item id does not correspond to any known item, according to our local database</exception>
     public static ArchipelagoItem GetAPItem(int idx, ItemInfo item) {
         return item.ItemId switch {
             -1 => new AP_Nothing(idx, item),
@@ -376,12 +438,28 @@ public static class RandoCommonData {
             _ => throw new ArgumentException($"Invalid item id: {item.ItemId}")
         };
     }
-    
+    /// <summary>
+    /// Compute the station name of the license received from archipelago
+    /// </summary>
+    /// <param name="id">The AP item id of a station license</param>
+    /// <returns>The corresponding station name, or null if the given id is not a valid station license item</returns>
     public static string GetStationNameFromId(long id) => StationOrder.ElementAtOrDefault(id.Offset(SLICENSES));
-    
+    /// <summary>
+    /// Compute the locomotive of a progressive demonstrator item received
+    /// </summary>
+    /// <param name="id">The AP item id of a progressive demo loco item</param>
+    /// <returns>The corresponding locomotive type, or <see cref="TrainCarType.NotSet"/> if the given id is not a valid demo loco item</returns>
     public static TrainCarType GetCarTypeFromId(long id) => TrainTypeOrder.ElementAtOrDefault(id.Offset(RELIC));
+    /// <summary>
+    /// Compute the order index of a progressive demonstrator item received
+    /// </summary>
+    /// <param name="id">The requested item id</param>
+    /// <returns>The corresponding order index</returns>
     public static int GetOrderFromRelicId(long id) => id.Offset(RELIC);
     
+    /// <summary>
+    /// List of general licenses families, in the order used by archipelago
+    /// </summary>
     private static readonly GeneralLicenseType[][] IdToGeneralLicense = [
         [GeneralLicenseType.Dispatcher1], 
         [GeneralLicenseType.TrainDriver], 
@@ -396,6 +474,13 @@ public static class RandoCommonData {
         [GeneralLicenseType.ManualService], 
         [GeneralLicenseType.ConcurrentJobs1, GeneralLicenseType.ConcurrentJobs2]
     ];
+    /// <summary>
+    /// Direct mapping AP item id (-> order) -> General license family
+    /// </summary>
+    /// <param name="id">The requested item id</param>
+    /// <returns>A list of general licenses obtainable with this item id: if id is not valid the return list is empty,
+    /// if license is a progressive license the return list contains the different licenses in the order they should be acquired,
+    /// else the return list contains the only applicable license</returns>
     public static GeneralLicenseType_v2[] GetGeneralLicenseFamilyFromId(long id) {
         try {
             return [.. IdToGeneralLicense[id-GLICENSES].Select(l => l.ToV2())];
@@ -403,10 +488,9 @@ public static class RandoCommonData {
             return [];
         }
     }
-    public static long GetIdFromGarage(GarageType_v2 garage) {
-        int order = GetOrderFromGarage(garage);
-        return order < 0 ? -1L : LOC_GARAGE_UNLOCKED + order;
-    }
+    /// <summary>
+    /// List of job licenses families, in the order used by archipelago
+    /// </summary>
     private static readonly JobLicenses[][] IdToJobLicense = [
         [JobLicenses.FreightHaul], 
         [JobLicenses.LogisticalHaul], 
@@ -416,6 +500,13 @@ public static class RandoCommonData {
         [JobLicenses.Hazmat1, JobLicenses.Hazmat2, JobLicenses.Hazmat3], 
         [JobLicenses.Military1, JobLicenses.Military2, JobLicenses.Military3]
     ];
+    /// <summary>
+    /// Direct mapping AP item id (-> order) -> Job license family
+    /// </summary>
+    /// <param name="id">The requested item id</param>
+    /// <returns>A list of job licenses obtainable with this item id: if id is not valid the return list is empty,
+    /// if license is a progressive license the return list contains the different licenses in the order they should be acquired,
+    /// else the return list contains the only applicable license</returns>
     public static JobLicenseType_v2[] GetJobLicenseFamilyFromId(long id) {
         try {
             return [.. IdToJobLicense[id.Offset(JLICENSES)].Select(l => l.ToV2())];
@@ -423,7 +514,9 @@ public static class RandoCommonData {
             return [];
         }
     }
-    
+    /// <summary>
+    /// List of physical item prefab names in the order used by archipelago
+    /// </summary>
     private static readonly string[] AddressToItemName = ["AmpLimiter",
         "AntiWheelslipComputer",
         "Ashtray",
@@ -670,12 +763,26 @@ public static class RandoCommonData {
         "VehicleCatalog",
         "wallet",
         "WirelessMUController"];
-    public static string GetItemPrefabFromId(long id) => AddressToItemName[id - ITEMS];
+    /// <summary>
+    /// Direct mapping Item id (-> order) -> Item prefab name
+    /// </summary>
+    /// <param name="id">The requested item id</param>
+    /// <returns>The corresponding prefab name, or null if the id is not valid</returns>
+    public static string GetItemPrefabFromId(long id) => AddressToItemName.ElementAt(id.Offset(ITEMS));
     
+    /// <summary>
+    /// Compute the controller (DV class that manages the reconstruction quest) based on the item id
+    /// </summary>
+    /// <param name="id">The requested item id</param>
+    /// <returns>The corresponding controller</returns>
     public static LocoRestorationController GetLocoControllerFromId(long id) =>
         LocoRestorationController.GetForLivery(GetCarTypeFromId(id).ToV2());
     
-    public static void AcquireStationLicense(string name) {
+    /// <summary>
+    /// Create an object with information about a station license
+    /// </summary>
+    /// <param name="name">The requested station name</param>
+    public static void PrintStationLicense(string name) {
         GameObject license = BookletCreator_CashRegisterReceipt.Create(GetStationLicenseData(name), Main.Player.Position, Main.Player.Rotation, WorldMover.OriginShiftParent);
         license.name=name+"SL";
         InventoryItemSpec item = license.GetComponent<InventoryItemSpec>();
@@ -684,7 +791,12 @@ public static class RandoCommonData {
         ItemBase component = item.GetComponent<ItemBase>();
         SingletonBehaviour<StorageController>.Instance.AddItemToWorldStorage(component);
     }
-    
+    /// <summary>
+    /// Compute the garage based on the item id for receiving the spawn rights of a crew vehicle
+    /// </summary>
+    /// <param name="id">The requested item id</param>
+    /// <returns>The corresponding garage</returns>
+    /// <exception cref="ArgumentException">Thrown when the id is not a valid spawn right item</exception>
     public static GarageType_v2 GetGarageFromId(long id) {
         return id switch {
             0x360 or 0x692 => Garage.Bob.ToV2(),
@@ -694,7 +806,11 @@ public static class RandoCommonData {
             _ => throw new ArgumentException("GetGarageFromId: Id is not a Garage")
         };
     }
-
+    /// <summary>
+    /// Compute index order based on a crew vehicle garage
+    /// </summary>
+    /// <param name="garage">The requested garage</param>
+    /// <returns>The corresponding index order, or -1 if the garage is not a valid crew vehicle garage</returns>
     public static int GetOrderFromGarage(GarageType_v2 garage) =>
         garage.v1 switch {
             Garage.Bob => 0,
@@ -706,13 +822,21 @@ public static class RandoCommonData {
     
     #endregion
     #region Display names utilities
-
+    /// <summary>
+    /// Augment an item name based on the AP item classification
+    /// </summary>
+    /// <param name="flags">Item flags containing the classification of the item</param>
+    /// <returns>A suffix to add to the item display name</returns>
     public static string GetFromFlags(ItemFlags flags) =>
         flags.HasFlag(ItemFlags.Advancement) ? "!!" :
         flags.HasFlag(ItemFlags.NeverExclude) ? "!" :
         flags.HasFlag(ItemFlags.Trap) ? "..." : "";
 
-    
+    /// <summary>
+    /// Displayable name from a locomotive type
+    /// </summary>
+    /// <param name="carType">The requested locomotive type</param>
+    /// <returns>A human-readable name</returns>
     public static string GetLocoNameFromType(TrainCarType carType) =>
         carType switch {
             TrainCarType.LocoDH4 => "DH4",
@@ -723,25 +847,11 @@ public static class RandoCommonData {
             TrainCarType.LocoShunter => "DE2",
             _ => "Unknown locomotive"
         };
-    public static string GetNameFromGarageID(long id) =>
-        id switch {
-            0x360 => "BE2",
-            0x361 => "Caboose",
-            0x362 => "DE6 Slug",
-            0x363 => "DM1U",
-            _ => throw new ArgumentException("Asked for garage name but is not a garage ID")
-        };
-    
-    public static string GetRelicNameFromId(long id) =>
-        GetCarTypeFromId(id) switch {
-            TrainCarType.LocoShunter => "DE2",
-            TrainCarType.LocoSteamHeavy => "S282",
-            TrainCarType.LocoS060 => "S060",
-            TrainCarType.LocoDiesel => "DE6",
-            TrainCarType.LocoDM3 => "DM3",
-            TrainCarType.LocoDH4 => "DH4",
-            _ => "ERROR"
-        };
+    /// <summary>
+    /// Look for sprite for station licenses
+    /// </summary>
+    /// <param name="name">The requested station name</param>
+    /// <returns>The corresponding sprite</returns>
     public static Sprite GetStationSprite(string name) {
         if (name.Equals("HMB")) name = "HB";
         else if (name.Equals("MFMB")) name = "MF";
@@ -749,6 +859,12 @@ public static class RandoCommonData {
         ImageConversion.LoadImage(icon, File.ReadAllBytes(Path.Combine(Main.Mod!.Path,"icons", $"icon_{name}.png")));
         return Sprite.Create(icon, new Rect(0,0,256,256), new Vector2(0.5f, 0.5f));
     }
+    /// <summary>
+    /// Format the information corresponding to a transport job for display on station license if hinted
+    /// </summary>
+    /// <param name="name">The requested station name</param>
+    /// <param name="idx">The index order of the requested hint</param>
+    /// <returns>The formatted information as a module for cash register receipt</returns>
     private static CashRegisterModule.CashRegisterModuleData GetFreightData(string name, int idx) {
         return new CashRegisterModule.CashRegisterModuleData {
             unitsToBuy=idx+1,
@@ -758,6 +874,12 @@ public static class RandoCommonData {
             car=null
         };
     }
+    /// <summary>
+    /// Format the information corresponding to a shunting job for display on station license if hinted
+    /// </summary>
+    /// <param name="name">The requested station name</param>
+    /// <param name="idx">The index order of the requested hint</param>
+    /// <returns>The formatted information as a module for cash register receipt</returns>
     private static CashRegisterModule.CashRegisterModuleData GetShuntingData(string name, int idx) {
         return new CashRegisterModule.CashRegisterModuleData {
             unitsToBuy=idx+1,
@@ -767,6 +889,11 @@ public static class RandoCommonData {
             car=null
         };
     }
+    /// <summary>
+    /// Format all information that should be printed on a station license
+    /// </summary>
+    /// <param name="name">The requested station name</param>
+    /// <returns>The formatted information as a list for display on cash register receipt</returns>
     public static List<CashRegisterModule.CashRegisterModuleData> GetStationLicenseData(string name) {
         List<CashRegisterModule.CashRegisterModuleData> stationLicense = [new() {
             unitsToBuy=1,
@@ -784,6 +911,6 @@ public static class RandoCommonData {
         return stationLicense;
             
     }
-    public static string GetStationNameFromFinishingJobId(long id) => GetStationNameFromOrder((int)(id & 0x1F00)>>8);
+
     #endregion
 }

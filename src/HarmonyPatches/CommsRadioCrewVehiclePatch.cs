@@ -7,7 +7,9 @@ namespace DvMod.Randomizer.HarmonyPatches;
 
 [HarmonyPatch(typeof(CommsRadioCrewVehicle))]
 public static class CommsRadioCrewVehiclePatch {
-    
+    /// <summary>
+    /// Bypasses the vehicles available to spawn with the radio: uses the received AP item instead of the unlocked garages
+    /// </summary>
     [HarmonyPostfix, HarmonyPatch("UpdateAvailableVehicles")]
     public static void UpdateAvailableVehicles_Postfix(CommsRadioCrewVehicle __instance) {
         if (!Main.IsConnected) return;

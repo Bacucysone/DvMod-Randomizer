@@ -10,7 +10,9 @@ using HarmonyLib;
 using UnityEngine;
 
 namespace DvMod.Randomizer.HarmonyPatches;
-
+/// <summary>
+/// Prepare randomizer save data when starting from fresh file
+/// </summary>
 [HarmonyPatch(typeof(StartGameData_NewCareer))]
 public class StartGameData_NewCareerPatch {
 

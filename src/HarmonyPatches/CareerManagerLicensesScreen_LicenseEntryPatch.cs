@@ -4,7 +4,10 @@ using DV.Utils;
 using HarmonyLib;
 
 namespace DvMod.Randomizer.HarmonyPatches;
-
+/// <summary>
+/// Change the career manager behaviour when buying licenses: Change license selection screen to have different
+/// acquired and obtainable criteria
+/// </summary>
 [HarmonyPatch(typeof(CareerManagerLicensesScreen.LicenseEntry))]
 public class CareerManagerLicensesScreen_LicenseEntryPatch {
 

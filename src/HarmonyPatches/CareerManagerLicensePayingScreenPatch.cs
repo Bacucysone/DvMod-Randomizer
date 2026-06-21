@@ -14,6 +14,9 @@ public class CareerManagerLicensePayingScreenPatch {
     [HarmonyPostfix, HarmonyPatch(nameof(CareerManagerLicensePayingScreen.Activate))]
     public static void Activate_Postfix(TextMeshPro ___licenseNameText) => ___licenseNameText.text += "?";
     
+    /// <summary>
+    /// Change the career manager behaviour when buying a new license: stop the license acquisition and send an AP item instead
+    /// </summary>
     [HarmonyPrefix, HarmonyPatch(nameof(CareerManagerLicensePayingScreen.HandleInputAction))]
     public static bool HandleInputAction_Prefix(InputAction input, CareerManagerLicensePayingScreen __instance, JobLicenseType_v2 ___jobLicenseToBuy, GeneralLicenseType_v2 ___generalLicenseToBuy) {
         if (!Main.IsConnected) return true;
