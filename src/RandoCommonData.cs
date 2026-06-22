@@ -144,8 +144,21 @@ public static class RandoCommonData {
     /// Array of station name in the order we use for AP (which is alphabetical order)
     /// </summary>
     private static readonly string[] StationOrder = [
-        "CME", "CMS", "CP", "CS", "CW", "FF", "FM", "FRC", "FRS", "GF", "HB", "HMB", "IME", "IMW", "MB", "MF", "MFMB", "OR", "OWC", "OWN", "SM", "SW"
+        "CME", "CMS", "CP", "CS", "CW", "FF", "FM", "FRC", "FRS", "GF", "HB", "IME", "IMW", "MB", "MF", "OR", "OWC", "OWN", "SM", "SW"
     ];
+    
+    /// <summary>
+    /// Transform the provided station name into a usable form (Only useful as there are 2 military bureau in HB and MF that
+    /// have different names than the station they are located in)
+    /// </summary>
+    /// <param name="originalName">The requested station name</param>
+    /// <returns>The actual station name</returns>
+    private static string ToActualStationName(string originalName) =>
+        originalName switch {
+            "HMB" => "HB",
+            "MFMB" => "MF",
+            _ => originalName
+        };
     /// <summary>
     /// Direct mapping order -> station name
     /// </summary>
@@ -157,7 +170,7 @@ public static class RandoCommonData {
     /// </summary>
     /// <param name="name">The requested station name</param>
     /// <returns>The corresponding index</returns>
-    public static int GetOrderFromStationName(string name) => Array.IndexOf(StationOrder, name);
+    public static int GetOrderFromStationName(string name) => Array.IndexOf(StationOrder, ToActualStationName(name));
     
     /// <summary>
     /// Get AP location Id for finish enough jobs with a given locomotive
