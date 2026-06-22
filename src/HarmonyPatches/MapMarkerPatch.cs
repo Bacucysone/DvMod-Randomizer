@@ -14,7 +14,7 @@ public class MapMarkerPatch {
     private static readonly int ColorStringId = Shader.PropertyToID("_Color");
 
     /// <summary>
-    /// When drawing the map item, we change the color of station markers (green the user has the station license, red they does not)
+    /// When drawing the map item, we change the color of station markers (green the user has the station license, red they do not)
     /// </summary>
     [HarmonyPostfix, HarmonyPatch(nameof(MapMarker.Init))]
     public static void Init_Postfix(MapMarker __instance) {
