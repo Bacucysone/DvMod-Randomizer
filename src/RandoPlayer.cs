@@ -212,6 +212,10 @@ public class RandoPlayer
     /// </summary>
     public event Action UpdateEvent;
     /// <summary>
+    /// Task running for acquiring one item. Ensure that only one item is trying to be acquired at a time
+    /// </summary>
+    private Task _currentItemTask;
+    /// <summary>
     /// Provided by multiclient.net, helper for the deathlink option
     /// </summary>
     public DeathLinkService deathLinkService ;
@@ -337,9 +341,10 @@ public class RandoPlayer
     /// by moving the item processing loop on the UpdateEvent, we move to another thread and solving these problems
     /// </summary>
     private void ProcessItems() {
-        if (_waitingQueue.TryDequeue(out ArchipelagoItem item)){
-            item.Acquire().Wait();
-        }
+        if (_currentItemTask is { IsCompleted: false } ||
+            !_waitingQueue.TryDequeue(out ArchipelagoItem item)) return;
+        _currentItemTask = item.Acquire();
+        _currentItemTask.Start();
     }
     /// <summary>
     /// Called whenever the user receive an item. It enqueues the item in <see cref="_waitingQueue"/> and check that
