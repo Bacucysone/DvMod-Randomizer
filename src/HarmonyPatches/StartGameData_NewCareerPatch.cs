@@ -15,19 +15,6 @@ namespace DvMod.Randomizer.HarmonyPatches;
 /// </summary>
 [HarmonyPatch(typeof(StartGameData_NewCareer))]
 public class StartGameData_NewCareerPatch {
-
-    [HarmonyPostfix, HarmonyPatch(nameof(StartGameData_NewCareer.DoLoad))]
-    public static IEnumerator DoLoad_Postfix(IEnumerator originalMethod, Transform playerContainer) {
-        yield return originalMethod;
-        Transform teleportAnchor = 
-            StationController.allStations
-                .Find(sc => sc.stationInfo.YardID.Equals(Main.Player.SlotData.StartStation))
-                .stationRange
-                .stationCenterAnchor;
-        playerContainer.position = teleportAnchor.position;
-        playerContainer.rotation = teleportAnchor.rotation;
-        yield return null;
-    }
     
     [HarmonyPrefix, HarmonyPatch(nameof(StartGameData_NewCareer.PrepareNewSaveData))]
     public static bool PrepareNewSaveData_Prefix(ref SaveGameData saveGameData, IGameSession session, IDifficulty difficultyParams) {
