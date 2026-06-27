@@ -344,7 +344,6 @@ public class RandoPlayer
         if (_currentItemTask is { IsCompleted: false } ||
             !_waitingQueue.TryDequeue(out ArchipelagoItem item)) return;
         _currentItemTask = item.Acquire();
-        _currentItemTask.Start();
     }
     /// <summary>
     /// Called whenever the user receive an item. It enqueues the item in <see cref="_waitingQueue"/> and check that
