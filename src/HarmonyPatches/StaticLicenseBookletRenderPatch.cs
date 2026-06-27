@@ -15,6 +15,7 @@ public class StaticLicenseBookletRenderPatch {
         if (!Main.IsConnected) return;
         int order = RandoCommonData.GetOrderFromLocoLicense(___generalLicense);
         if (order < 0 || !Main.Player.Config.HintsOnLocoLicense) return;
+        if (Main.Player.Config.LocoJobsThreshold[0] == 0) return;
         LicenseTemplatePaperData firstPage = (LicenseTemplatePaperData) __result[0];
         firstPage.licenseDescription += $"\nIn {Main.Player.Config.LocoJobsThreshold[order]} job with this loco, you will earn a {Main.Player.GetItemNameFromLocationId(RandoCommonData.GetLocoNbJobsIdFromOrder(order), true)}";
     }
