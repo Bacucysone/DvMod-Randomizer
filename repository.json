@@ -1,34 +1,39 @@
 {
 	"Releases": [
+		{
+			"Id": "Randomizer",
+			"Version": "0.2.4",
+			"DownloadUrl": "https://github.com/Bacucysone/DvMod-Randomizer/releases/download/v0.2.4/Randomizer.zip"
+		},
         {
 			"Id": "Randomizer",
 			"Version": "0.2.3",
-			"DownloadUrl": "https://github.com/Bacucysone/DvMod-Randomizer/releases/download/v.0.2.3/Randomizer.zip"
+			"DownloadUrl": "https://github.com/Bacucysone/DvMod-Randomizer/releases/download/v0.2.3/Randomizer.zip"
 		},
 		{
 			"Id": "Randomizer",
 			"Version": "0.2.2",
-			"DownloadUrl": "https://github.com/Bacucysone/DvMod-Randomizer/releases/download/v.0.2.2/Randomizer.zip"
+			"DownloadUrl": "https://github.com/Bacucysone/DvMod-Randomizer/releases/download/v0.2.2/Randomizer.zip"
 		},
 		{
 			"Id": "Randomizer",
 			"Version": "0.2.1",
-			"DownloadUrl": "https://github.com/Bacucysone/DvMod-Randomizer/releases/download/v.0.2.1/Randomizer.zip"
+			"DownloadUrl": "https://github.com/Bacucysone/DvMod-Randomizer/releases/download/v0.2.1/Randomizer.zip"
 		},
         {
 			"Id": "Randomizer",
 			"Version": "0.2.0",
-			"DownloadUrl": "https://github.com/Bacucysone/DvMod-Randomizer/releases/download/v.0.2.0/Randomizer.zip"
+			"DownloadUrl": "https://github.com/Bacucysone/DvMod-Randomizer/releases/download/v0.2.0/Randomizer.zip"
 		},
         {
 			"Id": "Randomizer",
 			"Version": "0.1.1-beta",
-			"DownloadUrl": "https://github.com/Bacucysone/DvMod-Randomizer/releases/download/v.0.1.1-beta/Randomizer.zip"
+			"DownloadUrl": "https://github.com/Bacucysone/DvMod-Randomizer/releases/download/v0.1.1-beta/Randomizer.zip"
 		},
         {
 			"Id": "Randomizer",
 			"Version": "0.1.0-beta",
-			"DownloadUrl": "https://github.com/Bacucysone/DvMod-Randomizer/releases/download/v.0.1.0-beta/Randomizer.zip"
+			"DownloadUrl": "https://github.com/Bacucysone/DvMod-Randomizer/releases/download/v0.1.0-beta/Randomizer.zip"
 		}
 	]
 }

@@ -2,7 +2,7 @@
     "Id": "Randomizer",
     "DisplayName": "Archipelago Randomizer",
     "AssemblyName": "Randomizer.dll",
-    "Version": "0.2.3",
+    "Version": "0.2.4",
     "EntryMethod": "DvMod.Randomizer.Main.Load",
     "Author": "Bacucysone",
     "Repository": "https://raw.githubusercontent.com/Bacucysone/DvMod-Randomizer/master/resources/repository.json"
