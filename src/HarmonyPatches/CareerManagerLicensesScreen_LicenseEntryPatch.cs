@@ -25,7 +25,6 @@ public class CareerManagerLicensesScreen_LicenseEntryPatch {
         __instance.name.text = "AP Item";
         if (!__instance.IsAcquired){
             __instance.status.text = "$" + __instance.JobLicense.price.ToString("N2", LocalizationAPI.CC);
-            // __instance.name.text += "?";
         } else 
             __instance.status.text = CareerManagerLocalization.OWNED;
         
@@ -45,7 +44,6 @@ public class CareerManagerLicensesScreen_LicenseEntryPatch {
         __instance.name.text = "AP Item";
         if (!__instance.IsAcquired){
             __instance.status.text = "$" + __instance.GeneralLicense.price.ToString("N2", LocalizationAPI.CC);
-            // __instance.name.text += "?";
         } else 
             __instance.status.text = CareerManagerLocalization.OWNED;
     }
