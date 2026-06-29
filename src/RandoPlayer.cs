@@ -53,6 +53,7 @@ public class DVConfig {
     public int VictoryThreshold;
     public bool HintsOnLocoLicense;
     public bool HintsOnStationLicense;
+    public bool HintsOnLicenseManager;
     public bool DeathLink;
 }
 /// <summary>
