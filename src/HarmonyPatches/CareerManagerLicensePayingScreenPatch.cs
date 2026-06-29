@@ -11,9 +11,25 @@ namespace DvMod.Randomizer.HarmonyPatches;
 [HarmonyPatch(typeof(CareerManagerLicensePayingScreen))]
 public class CareerManagerLicensePayingScreenPatch {
     
+    /// <summary>
+    /// Change the name of the license you're trying to buy to the name of the AP item
+    /// </summary>
     [HarmonyPostfix, HarmonyPatch(nameof(CareerManagerLicensePayingScreen.Activate))]
-    public static void Activate_Postfix(TextMeshPro ___licenseNameText) => ___licenseNameText.text += "?";
-    
+    public static void Activate_Postfix(CareerManagerLicensePayingScreen __instance, JobLicenseType_v2 ___jobLicenseToBuy, GeneralLicenseType_v2 ___generalLicenseToBuy, TextMeshPro ___licenseNameText) {
+        string item_name;
+        if (!Main.IsConnected) return;
+
+        if (___generalLicenseToBuy != null) {
+            long id = RandoCommonData.GetIdFromGeneralLicense(___generalLicenseToBuy);
+            item_name = Main.Player.GetItemNameFromLocationId(id,true);
+            ___licenseNameText.text = item_name;
+        } else {
+            long id = RandoCommonData.GetIdFromJobLicense(___jobLicenseToBuy);
+            item_name = Main.Player.GetItemNameFromLocationId(id,true);
+            ___licenseNameText.text = item_name;
+        }
+    }
+
     /// <summary>
     /// Change the career manager behaviour when buying a new license: stop the license acquisition and send an AP item instead
     /// </summary>
