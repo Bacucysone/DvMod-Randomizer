@@ -526,6 +526,41 @@ public static class RandoCommonData {
             return [];
         }
     }
+
+    /// <summary>
+    /// Lists of licenses
+    /// </summary>
+    public static readonly GeneralLicenseType[] APGeneralLicenses = [
+        GeneralLicenseType.Dispatcher1, 
+        GeneralLicenseType.TrainDriver, 
+        GeneralLicenseType.DE2, 
+        GeneralLicenseType.DM3, 
+        GeneralLicenseType.DH4, 
+        GeneralLicenseType.DE6, 
+        GeneralLicenseType.S060, 
+        GeneralLicenseType.SH282, 
+        GeneralLicenseType.MultipleUnit, 
+        GeneralLicenseType.MuseumCitySouth, 
+        GeneralLicenseType.ManualService, 
+        GeneralLicenseType.ConcurrentJobs1,
+        GeneralLicenseType.ConcurrentJobs2
+    ];
+
+    public static readonly JobLicenses[] APJobLicenses = [
+        JobLicenses.FreightHaul, 
+        JobLicenses.LogisticalHaul, 
+        JobLicenses.Shunting, 
+        JobLicenses.Fragile, 
+        JobLicenses.TrainLength1,
+        JobLicenses.TrainLength2, 
+        JobLicenses.Hazmat1,
+        JobLicenses.Hazmat2,
+        JobLicenses.Hazmat3, 
+        JobLicenses.Military1,
+        JobLicenses.Military2,
+        JobLicenses.Military3
+    ];
+
     /// <summary>
     /// List of physical item prefab names in the order used by archipelago
     /// </summary>

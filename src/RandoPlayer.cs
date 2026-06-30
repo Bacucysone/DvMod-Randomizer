@@ -55,6 +55,9 @@ public class DVConfig {
     public bool HintsOnStationLicense;
     public bool HintsOnLicenseManager;
     public bool DeathLink;
+    public bool RandomiseLicensePrices;
+    public int RandomiseLicensePricesMin;
+    public int RandomiseLicensePricesMax;
 }
 /// <summary>
 /// Data class containing all elements for the rando-player
@@ -75,6 +78,8 @@ public class RandoSaveData {
     public HashSet<long> LocationsChecked;
     public DVConfig Config;
     public int Tokens;
+    public int[] GeneralLicensePrices;
+    public int[] JobLicensePrices;
 
     public static RandoSaveData CreateSaveData(DVConfig config) => new() {
         Version = Main.VERSION,
@@ -91,7 +96,9 @@ public class RandoSaveData {
         AlreadyWon = false,
         LocationsChecked = [],
         Config = config,
-        Tokens = 0
+        Tokens = 0,
+        GeneralLicensePrices = new int[RandoCommonData.APGeneralLicenses.Length],
+        JobLicensePrices = new int[RandoCommonData.APJobLicenses.Length]
     };
 }
 /// <summary>
@@ -247,11 +254,50 @@ public class RandoPlayer
         }
         SetupListeners(true);
         UpdateEvent += ProcessItems;
-        //Add prices for normally tutorial acquired licenses
-        GeneralLicenseType.DE2.ToV2().price = 5000;
-        GeneralLicenseType.TrainDriver.ToV2().price = 1000;
-        JobLicenses.FreightHaul.ToV2().price = 10000;
+
+        // Require license to use DE2
         TrainCarType.LocoShunter.ToV2().requiredLicense = GeneralLicenseType.DE2.ToV2();
+
+        Main.Log("Start randomising license prices");
+        //Randomise license prices or set normally non-buyable license to a price
+        if (Main.Player.Config.RandomiseLicensePrices){
+            int min = Main.Player.Config.RandomiseLicensePricesMin;
+            int max = Main.Player.Config.RandomiseLicensePricesMax;
+            Main.Log($"Inside if: min = {min}, max = {max}");
+
+            int i = -1;
+            foreach (GeneralLicenseType license in RandoCommonData.APGeneralLicenses){
+                i++;
+                if (Data.GeneralLicensePrices[i] > 0){
+                    license.ToV2().price = Data.GeneralLicensePrices[i];
+                    Main.Log($"Recalled {license} price = {license.ToV2().price}");
+                } else {
+                    license.ToV2().price = UnityEngine.Random.Range(min,max);
+                    Data.GeneralLicensePrices[i] = (int)license.ToV2().price;
+                    Main.Log($"Generated {license} price = {license.ToV2().price}");
+                };
+            }
+            int j = -1;
+            foreach (JobLicenses license in RandoCommonData.APJobLicenses){
+                j++;
+                if (Data.JobLicensePrices[j] > 0){
+                    license.ToV2().price = Data.JobLicensePrices[j];
+                    Main.Log($"Recalled {license} price = {license.ToV2().price}");
+                } else {
+                    license.ToV2().price = UnityEngine.Random.Range(min,max);
+                    Data.JobLicensePrices[j] = (int)license.ToV2().price;
+                    Main.Log($"Generated {license} price = {license.ToV2().price}");
+                };
+            }
+        } else {
+            GeneralLicenseType.DE2.ToV2().price = 5000;
+            GeneralLicenseType.TrainDriver.ToV2().price = 1000;
+            JobLicenses.FreightHaul.ToV2().price = 10000;
+        }
+        
+
+
+
         //Set up demo loco locations
         for (int i = 0; i < Data.LocoLocations.Count(); i++) {
             if (!Data.LocoLocations[i])
