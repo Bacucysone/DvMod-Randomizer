@@ -258,19 +258,18 @@ public class RandoPlayer
         // Require license to use DE2
         TrainCarType.LocoShunter.ToV2().requiredLicense = GeneralLicenseType.DE2.ToV2();
 
-        Main.Log("Start randomising license prices");
+        Main.Log("Start randomising license prices, min = {min}, max = {max}");
         //Randomise license prices or set normally non-buyable license to a price
         if (Main.Player.Config.RandomiseLicensePrices){
             int min = Main.Player.Config.RandomiseLicensePricesMin;
             int max = Main.Player.Config.RandomiseLicensePricesMax;
-            Main.Log($"Inside if: min = {min}, max = {max}");
 
             int i = -1;
             foreach (GeneralLicenseType license in RandoCommonData.APGeneralLicenses){
                 i++;
                 if (Data.GeneralLicensePrices[i] > 0){
                     license.ToV2().price = Data.GeneralLicensePrices[i];
-                    Main.Log($"Recalled {license} price = {license.ToV2().price}");
+                    Main.Log($"Retrieved {license} price = {license.ToV2().price}");
                 } else {
                     license.ToV2().price = UnityEngine.Random.Range(min,max);
                     Data.GeneralLicensePrices[i] = (int)license.ToV2().price;
@@ -282,7 +281,7 @@ public class RandoPlayer
                 j++;
                 if (Data.JobLicensePrices[j] > 0){
                     license.ToV2().price = Data.JobLicensePrices[j];
-                    Main.Log($"Recalled {license} price = {license.ToV2().price}");
+                    Main.Log($"Retrieved {license} price = {license.ToV2().price}");
                 } else {
                     license.ToV2().price = UnityEngine.Random.Range(min,max);
                     Data.JobLicensePrices[j] = (int)license.ToV2().price;
