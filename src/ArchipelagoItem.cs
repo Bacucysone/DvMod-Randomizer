@@ -144,7 +144,7 @@ public class AP_PhysicalItem(int idx, ItemInfo item) : ArchipelagoItem(idx, item
 {
     protected override bool AcquireUnconditional()
     {
-        InventoryItemSpec spec = Globals.G.Items.items.Find(sc => sc.itemPrefabName.Equals(DisplayName));
+        InventoryItemSpec spec = Globals.G.Items.items.Find(sc => sc.itemPrefabName.Equals(RandoCommonData.GetItemPrefabFromId(Id)));
         InventoryItemSpec inventoryItemSpec = UnityEngine.Object.Instantiate(spec, Main.Player.Position, Main.Player.Rotation);
         inventoryItemSpec.BelongsToPlayer = true;
         ItemBase component = inventoryItemSpec.GetComponent<ItemBase>();
