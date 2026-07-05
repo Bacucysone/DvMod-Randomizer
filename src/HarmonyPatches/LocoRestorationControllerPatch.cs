@@ -6,7 +6,7 @@ using HarmonyLib;
 namespace DvMod.Randomizer.HarmonyPatches;
 
 [HarmonyPatch(typeof(LocoRestorationController))]
-public static class LocoRestorationControllerPatch {
+public class LocoRestorationControllerPatch {
     
     /// <summary>
     /// If the controller did not find a locomotive, it forces spawn a new one. We delete the new locomotive in case it happens

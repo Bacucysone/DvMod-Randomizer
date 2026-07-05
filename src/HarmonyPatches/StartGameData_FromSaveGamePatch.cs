@@ -1,4 +1,7 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using DV.ThingTypes;
 using DV.UI;
 using DV.Utils;
 using HarmonyLib;
@@ -40,5 +43,19 @@ public class StartGameData_FromSaveGamePatch {
             return;
         }
         Main.Player.InitGame();
+    }
+
+    [HarmonyPostfix, HarmonyPatch(nameof(StartGameData_FromSaveGame.LoadingNonBlockingCoro))]
+    public static IEnumerator LoadingNonBlockingCoro_Postfix(IEnumerator originalMethod) {
+        yield return originalMethod;
+        foreach (GarageCarSpawner garageSpawner in GarageCarSpawner.Spawners.Values) {
+            if (!Main.Player.HasUnlocked(garageSpawner.garageType)) continue;
+            foreach (TrainCarLivery livery in garageSpawner.GarageCarLiveries) {
+                if (garageSpawner.GetCar(livery) != null) continue;
+                TrainCar foundCar = SingletonBehaviour<CarSpawner>.Instance.allCars.Find(car => car.carLivery == livery);
+                SingletonBehaviour<CarSpawner>.Instance.DeleteTrainCars(SingletonBehaviour<CarSpawner>.Instance.allCars.FindAll(car => car.carLivery == livery && car != foundCar));
+                garageSpawner.OverrideSpawnedCarReference(foundCar);
+            }
+        }
     }
 }

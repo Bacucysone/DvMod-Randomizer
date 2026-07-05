@@ -11,7 +11,7 @@ namespace DvMod.Randomizer.HarmonyPatches;
 /// </list>
 /// </summary>
 [HarmonyPatch(typeof(Terminal))]
-public static class TerminalPatch {
+public class TerminalPatch {
     
     [HarmonyPrefix, HarmonyPatch("EnterCommand")]
     public static bool EnterCommand_Prefix(ref string ___command_text) {
