@@ -254,16 +254,18 @@ public class RandoPlayer
         }
         SetupListeners(true);
         UpdateEvent += ProcessItems;
+        UpdateEvent += AutoReconnect;
 
-        // Require license to use DE2
+        // Require license to use DE2 (Does not work)
         TrainCarType.LocoShunter.ToV2().requiredLicense = GeneralLicenseType.DE2.ToV2();
 
-        Main.Log("Start randomising license prices, min = {min}, max = {max}");
+        
         //Randomise license prices or set normally non-buyable license to a price
         if (Main.Player.Config.RandomiseLicensePrices){
             int min = Main.Player.Config.RandomiseLicensePricesMin;
             int max = Main.Player.Config.RandomiseLicensePricesMax;
-
+            Main.Log($"Start randomising license prices, min = {min}, max = {max}");
+            
             int i = -1;
             foreach (GeneralLicenseType license in RandoCommonData.APGeneralLicenses){
                 i++;
@@ -330,6 +332,11 @@ public class RandoPlayer
         deathLinkService = Session.CreateDeathLinkService();
         deathLinkService.OnDeathLinkReceived += DeathLinkPatch.Derail;
         deathLinkService.EnableDeathLink();
+    }
+
+    private void AutoReconnect() {
+        if (Session.Socket.Connected) return;
+        Session.TryConnectAndLogin("Derail Valley", Main.Settings.User, ItemsHandlingFlags.AllItems, password: Main.Settings.Password);
     }
     
     /// <summary>
