@@ -254,16 +254,18 @@ public class RandoPlayer
         }
         SetupListeners(true);
         UpdateEvent += ProcessItems;
+        UpdateEvent += AutoReconnect;
 
-        // Require license to use DE2
+        // Require license to use DE2 (Does not work)
         TrainCarType.LocoShunter.ToV2().requiredLicense = GeneralLicenseType.DE2.ToV2();
 
-        Main.Log("Start randomising license prices, min = {min}, max = {max}");
+        
         //Randomise license prices or set normally non-buyable license to a price
         if (Main.Player.Config.RandomiseLicensePrices){
             int min = Main.Player.Config.RandomiseLicensePricesMin;
             int max = Main.Player.Config.RandomiseLicensePricesMax;
-
+            Main.Log($"Start randomising license prices, min = {min}, max = {max}");
+            
             int i = -1;
             foreach (GeneralLicenseType license in RandoCommonData.APGeneralLicenses){
                 i++;
@@ -331,6 +333,11 @@ public class RandoPlayer
         deathLinkService.OnDeathLinkReceived += DeathLinkPatch.Derail;
         deathLinkService.EnableDeathLink();
     }
+
+    private void AutoReconnect() {
+        if (Session.Socket.Connected) return;
+        Session.TryConnectAndLogin("Derail Valley", Main.Settings.User, ItemsHandlingFlags.AllItems, password: Main.Settings.Password);
+    }
     
     /// <summary>
     /// Destructor of the player (disconnect the websocket, remove any impact of the player on other parts of the game,
@@ -355,7 +362,7 @@ public class RandoPlayer
     #endregion
     #region Network methods helpers
     /// <summary>
-    /// Sens to AP server that a location has been checked
+    /// Sends to AP server that a location has been checked
     /// </summary>
     /// <param name="checkId">The archipelago location id</param>
     /// <returns>The item that was sent, for display purposes</returns>
@@ -384,7 +391,7 @@ public class RandoPlayer
     /// <summary>
     /// Function that runs every frame and process the received items.
     /// Bugs were reported (and observed) when the items were processed on the same thread as the session communications,
-    /// by moving the item processing loop on the UpdateEvent, we move to another thread and solving these problems
+    /// by moving the item processing loop on the UpdateEvent, we move to another thread and solve these problems
     /// </summary>
     private void ProcessItems() {
         if (_currentItemTask is { IsCompleted: false } ||
