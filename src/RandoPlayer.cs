@@ -276,7 +276,7 @@ public class RandoPlayer
                     license.ToV2().price = UnityEngine.Random.Range(min,max);
                     Data.GeneralLicensePrices[i] = (int)license.ToV2().price;
                     Main.Log($"Generated {license} price = {license.ToV2().price}");
-                };
+                }
             }
             int j = -1;
             foreach (JobLicenses license in RandoCommonData.APJobLicenses){
@@ -288,7 +288,7 @@ public class RandoPlayer
                     license.ToV2().price = UnityEngine.Random.Range(min,max);
                     Data.JobLicensePrices[j] = (int)license.ToV2().price;
                     Main.Log($"Generated {license} price = {license.ToV2().price}");
-                };
+                }
             }
         } else {
             GeneralLicenseType.DE2.ToV2().price = 5000;
@@ -582,6 +582,7 @@ public class RandoPlayer
     public (int, ItemInfo) FinishLoco(TrainCar car) {
         if (car == null) return (-1, null);
         int locoIdx = RandoCommonData.GetOrderFromLocoType(car.carType);
+        if (locoIdx < 0) return (-1, null);
         int remaining = Data.Config.LocoJobsThreshold[locoIdx] - ++Data.LocoJobs[locoIdx];
         ItemInfo item = remaining == 0 ? UnlockCheck(RandoCommonData.GetIdLocoJobsFromOrder(locoIdx)) : null;
         return (Math.Max(0, remaining), item);
