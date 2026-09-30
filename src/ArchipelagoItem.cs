@@ -93,48 +93,36 @@ public class AP_StationLicense(int idx, ItemInfo item) : ArchipelagoItem(idx, it
 /// <summary>
 /// Represents general licenses (Licenses not required for jobs: locomotives, concurrent jobs, manual service, museum...)
 /// </summary>
-public class AP_GeneralLicense : ArchipelagoItem
+public class AP_GeneralLicense(int idx, ItemInfo item) : ArchipelagoItem(idx, item)
 {
-    private readonly GeneralLicenseType_v2 _license;
-    public AP_GeneralLicense(int idx, ItemInfo item) :
-        base(idx, item) {
-        GeneralLicenseType_v2[] gLicenseFamily = RandoCommonData.GetGeneralLicenseFamilyFromId(Id).CopyLast();
-        int licenseIdx = 0;
-        while (licenseIdx < gLicenseFamily.Count() && SingletonBehaviour<LicenseManager>.Instance.IsGeneralLicenseAcquired(gLicenseFamily[licenseIdx])) licenseIdx++;
-        _license = gLicenseFamily[licenseIdx == gLicenseFamily.Count() ? licenseIdx - 1 : licenseIdx];
-    }
-
+    private readonly GeneralLicenseType_v2[] _gLicenseFamily = RandoCommonData.GetGeneralLicenseFamilyFromId(item.ItemId).CopyLast();
+    
     protected override bool AcquireUnconditional()
     {
-        SingletonBehaviour<LicenseManager>.Instance.AcquireGeneralLicense(_license);
-        BookletCreator.CreateLicense(_license, Main.Player.Position, Main.Player.Rotation, WorldMover.OriginShiftParent);
+        int licenseIdx = 0;
+        while (licenseIdx < _gLicenseFamily.Count() && SingletonBehaviour<LicenseManager>.Instance.IsGeneralLicenseAcquired(_gLicenseFamily[licenseIdx])) licenseIdx++;
+        SingletonBehaviour<LicenseManager>.Instance.AcquireGeneralLicense(_gLicenseFamily[licenseIdx]);
+        BookletCreator.CreateLicense(_gLicenseFamily[licenseIdx], Main.Player.Position, Main.Player.Rotation, WorldMover.OriginShiftParent);
         return true;
     }  
-
-    public override bool IsObtainable => !SingletonBehaviour<LicenseManager>.Instance.IsGeneralLicenseAcquired(_license);
+    public override bool IsObtainable => !SingletonBehaviour<LicenseManager>.Instance.IsGeneralLicenseAcquired(_gLicenseFamily.Last());
 }
 /// <summary>
 /// Represents job licenses (Licenses required for some jobs: shunting and transport, military, hazmat, train length...)
 /// </summary>
-public class AP_JobLicense : ArchipelagoItem
+public class AP_JobLicense(int idx, ItemInfo item) : ArchipelagoItem(idx, item)
 {
-    private readonly JobLicenseType_v2 _license;
-    public AP_JobLicense(int idx, ItemInfo item) :
-        base(idx, item) {
-        JobLicenseType_v2[] jLicenseFamily = RandoCommonData.GetJobLicenseFamilyFromId(Id).CopyLast();
-        int licenseIdx = 0;
-        while (licenseIdx < jLicenseFamily.Count() && SingletonBehaviour<LicenseManager>.Instance.IsJobLicenseAcquired(jLicenseFamily[licenseIdx])) licenseIdx++;
-        _license = jLicenseFamily[licenseIdx == jLicenseFamily.Count() ? licenseIdx - 1 : licenseIdx];
-    }
-
+    private readonly JobLicenseType_v2[] _jLicenseFamily = RandoCommonData.GetJobLicenseFamilyFromId(item.ItemId).CopyLast();
+    
     protected override bool AcquireUnconditional()
     {
-        SingletonBehaviour<LicenseManager>.Instance.AcquireJobLicense(_license);
-        BookletCreator.CreateLicense(_license, Main.Player.Position, Main.Player.Rotation, WorldMover.OriginShiftParent);
+        int licenseIdx = 0;
+        while (licenseIdx < _jLicenseFamily.Count() && SingletonBehaviour<LicenseManager>.Instance.IsJobLicenseAcquired(_jLicenseFamily[licenseIdx])) licenseIdx++;
+        SingletonBehaviour<LicenseManager>.Instance.AcquireJobLicense(_jLicenseFamily[licenseIdx]);
+        BookletCreator.CreateLicense(_jLicenseFamily[licenseIdx], Main.Player.Position, Main.Player.Rotation, WorldMover.OriginShiftParent);
         return true;
     }  
-
-    public override bool IsObtainable => !SingletonBehaviour<LicenseManager>.Instance.IsJobLicenseAcquired(_license);
+    public override bool IsObtainable => !SingletonBehaviour<LicenseManager>.Instance.IsJobLicenseAcquired(_jLicenseFamily.Last());
     
 }
 /// <summary>
