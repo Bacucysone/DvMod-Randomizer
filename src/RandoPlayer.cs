@@ -362,7 +362,7 @@ public class RandoPlayer
     #endregion
     #region Network methods helpers
     /// <summary>
-    /// Sens to AP server that a location has been checked
+    /// Sends to AP server that a location has been checked
     /// </summary>
     /// <param name="checkId">The archipelago location id</param>
     /// <returns>The item that was sent, for display purposes</returns>
@@ -391,7 +391,7 @@ public class RandoPlayer
     /// <summary>
     /// Function that runs every frame and process the received items.
     /// Bugs were reported (and observed) when the items were processed on the same thread as the session communications,
-    /// by moving the item processing loop on the UpdateEvent, we move to another thread and solving these problems
+    /// by moving the item processing loop on the UpdateEvent, we move to another thread and solve these problems
     /// </summary>
     private void ProcessItems() {
         if (_currentItemTask is { IsCompleted: false } ||
