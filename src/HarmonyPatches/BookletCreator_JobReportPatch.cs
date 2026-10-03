@@ -78,7 +78,7 @@ public class BookletCreator_JobReportPatch {
             else 
                 toAdd.Add(new JobReportTasksTemplatePaperData.JobReportEntry($"You got all rewards for {job} in {jobState.Station}", "", JobReportTasksTemplatePaperData.EntryState.COMPLETED));
             if (jobState.RemainingOtherJobs > 0) 
-                toAdd.Add(new JobReportTasksTemplatePaperData.JobReportEntry($"There are {jobState.RemainingJobs} rewards left for {otherJob} in {jobState.Station}", "", JobReportTasksTemplatePaperData.EntryState.IN_PROGRESS));
+                toAdd.Add(new JobReportTasksTemplatePaperData.JobReportEntry($"There are {jobState.RemainingOtherJobs} rewards left for {otherJob} in {jobState.Station}", "", JobReportTasksTemplatePaperData.EntryState.IN_PROGRESS));
             else 
                 toAdd.Add(new JobReportTasksTemplatePaperData.JobReportEntry($"You got all rewards for {otherJob} in {jobState.Station}", "", JobReportTasksTemplatePaperData.EntryState.COMPLETED));
             if (jobState.LastCar == null)
