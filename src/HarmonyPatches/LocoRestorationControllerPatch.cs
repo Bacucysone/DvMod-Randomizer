@@ -41,6 +41,9 @@ public class LocoRestorationControllerPatch {
     /// </summary>
     [HarmonyPostfix, HarmonyPatch("SetupListenersForPaintJob")]
     public static void SetupListenersForPaintJob_Postfix(TrainCar ___loco, bool on) {
-        if (Main.IsConnected && !on) Main.Player.UnlockCheck(RandoCommonData.GetRelicPaintedIdFromLoco(___loco.carType));
+        if (Main.IsConnected && !on) {
+            Main.Player.UnlockCheck(RandoCommonData.GetRelicPaintedIdFromLoco(___loco.carType));
+            Main.Player.CheckVictoryDemoLocos();
+        }
     }
 }

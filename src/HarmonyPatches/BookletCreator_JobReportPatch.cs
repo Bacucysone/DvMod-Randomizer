@@ -96,13 +96,24 @@ public class BookletCreator_JobReportPatch {
         } else {
             toAdd.Add(new JobReportTasksTemplatePaperData.JobReportEntry("You do not have the required station license. You cannot earn any item for this job", "", JobReportTasksTemplatePaperData.EntryState.IN_PROGRESS_WITH_X_MARK));
         }
-        if (jobState.HasWon) {
-            toAdd.Add(new JobReportTasksTemplatePaperData.JobReportEntry("You have completed the game!", "", JobReportTasksTemplatePaperData.EntryState.COMPLETED));
-        } else if (jobState.RemainingForVictory == 0) {
-            toAdd.Add(new JobReportTasksTemplatePaperData.JobReportEntry("You have completed enough jobs in this station","", JobReportTasksTemplatePaperData.EntryState.COMPLETED));
-        } else  {
-            toAdd.Add(new JobReportTasksTemplatePaperData.JobReportEntry($"You need {jobState.RemainingForVictory} jobs to finish this station", "", JobReportTasksTemplatePaperData.EntryState.IN_PROGRESS));
-        } 
+
+        if (jobState.RemainingForVictory > -2) {
+            if (jobState.HasWon) {
+                toAdd.Add(new JobReportTasksTemplatePaperData.JobReportEntry("You have completed the game!", "",
+                    JobReportTasksTemplatePaperData.EntryState.COMPLETED));
+            }
+            else if (jobState.RemainingForVictory == 0) {
+                toAdd.Add(new JobReportTasksTemplatePaperData.JobReportEntry(
+                    "You have completed enough jobs in this station", "",
+                    JobReportTasksTemplatePaperData.EntryState.COMPLETED));
+            }
+            else {
+                toAdd.Add(new JobReportTasksTemplatePaperData.JobReportEntry(
+                    $"You need {jobState.RemainingForVictory} jobs to finish this station", "",
+                    JobReportTasksTemplatePaperData.EntryState.IN_PROGRESS));
+            }
+        }
+
         AddData(ref __result, toAdd);
     }
     

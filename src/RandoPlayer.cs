@@ -42,66 +42,6 @@ public class JobFinishState {
     public int Tokens;
 }
 /// <summary>
-/// Class representing the configuration of the game
-/// </summary>
-[Serializable]
-public class DVConfig {
-    public int[] ShuntThreshold;
-    public int[] FreightThreshold;
-    public int[] LocoJobsThreshold;
-    public int Victory;
-    public int VictoryThreshold;
-    public bool HintsOnLocoLicense;
-    public bool HintsOnStationLicense;
-    public bool HintsOnLicenseManager;
-    public bool DeathLink;
-    public bool RandomiseLicensePrices;
-    public int RandomiseLicensePricesMin;
-    public int RandomiseLicensePricesMax;
-}
-/// <summary>
-/// Data class containing all elements for the rando-player
-/// </summary>
-public class RandoSaveData {
-    public bool[] StationLicenses;
-    public bool[] HiddenGarages;
-    public bool[] JobLocations;
-    public bool[] GeneralLocations;
-    public bool[] LocoLocations;
-    public int[] ReceivedRelics;
-    public int[] Shunts;
-    public int Index;
-    public int[] Freights;
-    public int[] LocoJobs;
-    public bool AlreadyWon;
-    public int Version;
-    public HashSet<long> LocationsChecked;
-    public DVConfig Config;
-    public int Tokens;
-    public int[] GeneralLicensePrices;
-    public int[] JobLicensePrices;
-
-    public static RandoSaveData CreateSaveData(DVConfig config) => new() {
-        Version = Main.VERSION,
-        StationLicenses = new bool[20],
-        HiddenGarages = new bool[4],
-        JobLocations = new bool[12],
-        GeneralLocations = new bool[13],
-        LocoLocations = new bool[57],
-        ReceivedRelics = new int[6],
-        Index = 0,
-        Freights = new int[20],
-        Shunts = new int[20],
-        LocoJobs = new int[6],
-        AlreadyWon = false,
-        LocationsChecked = [],
-        Config = config,
-        Tokens = 0,
-        GeneralLicensePrices = new int[RandoCommonData.APGeneralLicenses.Length],
-        JobLicensePrices = new int[RandoCommonData.APJobLicenses.Length]
-    };
-}
-/// <summary>
 /// Main class representing the rando player:
 /// contains the multiclient.net Session (to connect and exchange with archipelago server)
 /// and all progress pertaining to randomizer (tracking of locations sent and items received)
@@ -504,12 +444,12 @@ public class RandoPlayer
 
         ItemInfo item2 = null;
         ItemInfo itemLoco2 = null;
-        int remainingForVictory = CheckVictory(station);
+        int remainingForVictory = CheckVictoryNbOfJobs(station);
         if ((remaining > 0 || remainingLoco > 0 || remainingForVictory > 0) && Data.Tokens > 0) {
             Data.Tokens--;
             (remaining, item2) = isShunting ? FinishShunting(station) : FinishTransport(station);
             (remainingLoco, itemLoco2) = FinishLoco(PlayerManager.LastLoco);
-            remainingForVictory = CheckVictory(station);
+            remainingForVictory = CheckVictoryNbOfJobs(station);
         }
         return new() {
             HasWon = Data.AlreadyWon,
@@ -528,11 +468,13 @@ public class RandoPlayer
         };
     }
     /// <summary>
-    /// Count the number of finished jobs to check if the game is finished. If so, notify the AP server of victory
+    /// Count the number of finished jobs to check if the game is finished in the case of
+    /// number of jobs victory condition. If so, notify the AP server of victory
     /// </summary>
     /// <param name="station">A station name</param>
     /// <returns>The number of jobs already finished in <paramref name="station"/>, for display purposes</returns>
-    public int CheckVictory(string station) {
+    public int CheckVictoryNbOfJobs(string station) {
+        if (Config.VictoryCondition != VictoryCond.NbOfJobs) return -2;
         int toReturn = -1;
         int stOrder = RandoCommonData.GetOrderFromStationName(station);
         if (Data.AlreadyWon) return toReturn;
@@ -730,5 +672,14 @@ public class RandoPlayer
     /// <param name="jobLicense">The bought job license</param>
     public void CheckJLicense(JobLicenseType_v2 jobLicense) =>
         Data.JobLocations[RandoCommonData.GetOrderFromJobLicense(jobLicense)] = true;
+
+    public void CheckVictoryDemoLocos() {
+        Data.DemoLocosFinished++;
+        if (Config.VictoryCondition is not VictoryCond.DemoLocos ||
+            Data.DemoLocosFinished != Config.VictoryDemoLoco) return;
+        Main.NotifyPlayer("You have won!");
+        Session.SetGoalAchieved();
+        Data.AlreadyWon = true;
+    }
 }
 #endregion
