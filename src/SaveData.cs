@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace DvMod.Randomizer;
 
+/// <summary>
+/// Enumeration of all victory conditions
+/// </summary>
 public enum VictoryCond {
     NbOfJobs = 0,
     DemoLocos = 1

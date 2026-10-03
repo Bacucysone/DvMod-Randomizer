@@ -672,7 +672,11 @@ public class RandoPlayer
     /// <param name="jobLicense">The bought job license</param>
     public void CheckJLicense(JobLicenseType_v2 jobLicense) =>
         Data.JobLocations[RandoCommonData.GetOrderFromJobLicense(jobLicense)] = true;
-
+    
+    /// <summary>
+    /// Save that a new demo loco has been painted and, if applicable,
+    /// call victory to the server
+    /// </summary>
     public void CheckVictoryDemoLocos() {
         Data.DemoLocosFinished++;
         if (Config.VictoryCondition is not VictoryCond.DemoLocos ||
