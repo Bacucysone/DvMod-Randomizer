@@ -17,9 +17,13 @@ using System.Collections.Concurrent;
 using System.Linq;
 using DV.UI;
 using System.Collections;
+using System.IO;
 using DV.OriginShift;
 using Archipelago.MultiClient.Net.Packets;
 using Archipelago.MultiClient.Net.BounceFeatures.DeathLink;
+using DV.TerrainSystem;
+using DV.TestScenes.TunnelCollisionIgnore;
+using Object = UnityEngine.Object;
 
 namespace DvMod.Randomizer;
 
@@ -84,12 +88,36 @@ public class RandoPlayer
         /// </summary>
         private readonly int _idx;
 
+        private static Sprite _apSprite;
+
+        private SpriteRenderer _positionSign;
+
+        private Vector3 _swayDirection = Vector3.up;
+        private float _swayDistance = 0f;
+
+        private void LoadSign() {
+            Object.Destroy(_positionSign?.gameObject); 
+            GameObject go = new ();
+            _positionSign = go.AddComponent<SpriteRenderer>();
+            _positionSign.sprite = _apSprite;
+            _positionSign.transform.SetAbsolutePosition(_locoPosition + new Vector3(0,1,0));
+            _positionSign.transform.localScale = new Vector3(0.05f, 0.05f, 1);
+        }
+        static DemoLocoListener() {
+            Texture2D texture = new(1,1);
+            texture.LoadImage(File.ReadAllBytes(Path.Combine(Main.Mod.Path, "icons", "color-icon.png")));
+            _apSprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
+        }
+
         public DemoLocoListener(int idx, float spatialThreshold = 5f, float timeThreshold = 20f) {
             _spatialThreshold = spatialThreshold;
             _timeThreshold = timeThreshold;
             (_locoPosition, _checkId) = RandoCommonData.GetInfoRestorationFromLocoLocationOrder(idx);
             _lastTime = 0f;
             _idx = idx;
+
+            WorldStreamingInit.LoadingFinished += LoadSign;
+            TerrainGrid.TerrainDataLoaded += (data, coords) => LoadSign();
         }
         
         /// <summary>
@@ -98,6 +126,11 @@ public class RandoPlayer
         /// </summary>
         public void CheckPosition() {
             if (PlayerManager.PlayerTransform == null) return;
+            _positionSign.transform.localRotation *= Quaternion.AngleAxis(0.4f, Vector3.up);
+            _positionSign.transform.localPosition += 0.0008f * _swayDirection;
+            _swayDistance += 0.0008f * _swayDirection.y;
+            if (_swayDistance is > 0.2f or < -0.2f)
+                _swayDirection *= -1f;
             if (Time.time - _lastTime <= _timeThreshold ||
                 (PlayerManager.PlayerTransform.AbsolutePosition() - _locoPosition).magnitude >=
                   _spatialThreshold) return;

@@ -17,11 +17,17 @@
 
   <ItemGroup>
     <Reference Include="0Harmony" />
+    <Reference Include="DV.TerrainSystem">
+      <HintPath>D:\SteamLibrary\steamapps\common\Derail Valley\DerailValley_Data\Managed\DV.TerrainSystem.dll</HintPath>
+    </Reference>
     <Reference Include="Unity.Mathematics" />
     <Reference Include="Assembly-CSharp" />
     <Reference Include="UnityEngine.InputLegacyModule" />
     <Reference Include="DV.UI.dll" />
     <Reference Include="DV.UIFramework.dll" />
+    <Reference Include="UnityEngine.TerrainModule">
+      <HintPath>D:\SteamLibrary\steamapps\common\Derail Valley\DerailValley_Data\Managed\UnityEngine.TerrainModule.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.UI" />
     <Reference Include="Unity.TextMeshPro" />
     <Reference Include="CommandTerminal" />
