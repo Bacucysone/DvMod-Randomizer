@@ -21,6 +21,7 @@ using System.IO;
 using DV.OriginShift;
 using Archipelago.MultiClient.Net.Packets;
 using Archipelago.MultiClient.Net.BounceFeatures.DeathLink;
+using DV;
 using DV.TerrainSystem;
 using DV.TestScenes.TunnelCollisionIgnore;
 using Object = UnityEngine.Object;
@@ -321,6 +322,31 @@ public class RandoPlayer
         SlotData = ((LoginSuccessful)login).SlotData;
         SingletonBehaviour<CoroutineManager>.Instance.Run(Subscribe());
         Data = saveData ?? RandoSaveData.CreateSaveData(SlotData.Config);
+        Task<string> guidTask = Session.DataStorage[Scope.Slot, "guid"].GetAsync<string>();
+        guidTask.Wait();
+        string guid = guidTask.Result;
+        if (guid != Data.Guid) {
+            // We resync from server
+            for (int station = 0; station < 20; station++) {
+                Data.Freights[station] = Session.Locations.AllLocationsChecked
+                    .Count(id => id >= 0x4000 + 0x100 * station && id < 0x4000 + 0x100 * (station + 1));
+                Data.Shunts[station] = Session.Locations.AllLocationsChecked
+                    .Count(id => id >= 0x2000 + 0x100 * station && id < 0x2000 + 0x100 * (station + 1));
+            }
+
+            foreach (int l in Globals.G.Types.generalLicenses
+                         .Select(RandoCommonData.GetIdFromGeneralLicense)
+                         .Intersect(Session.Locations.AllLocationsChecked)
+                         .Select(id => id - RandoCommonData.LOC_GENERAL_LICENSES))
+                Data.GeneralLocations[l] = true;
+            
+            foreach (int l in Globals.G.Types.jobLicenses
+                         .Select(RandoCommonData.GetIdFromJobLicense)
+                         .Intersect(Session.Locations.AllLocationsChecked)
+                         .Select(id => id - RandoCommonData.LOC_JOB_LICENSES))
+                Data.JobLocations[l] = true;
+        }
+            
         if (!Data.Config.DeathLink) return;
         deathLinkService = Session.CreateDeathLinkService();
         deathLinkService.OnDeathLinkReceived += DeathLinkPatch.Derail;

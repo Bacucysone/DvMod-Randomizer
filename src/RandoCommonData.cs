@@ -132,13 +132,13 @@ public static class RandoCommonData {
     #region Mappings DV Items/Events -> long id Locations
     
     //Constant offsets used by Archipelago for locations
-    private const long LOC_RELIC_PARTS = 0x620;
-    private const long LOC_RELIC_PAINTED = 0x630;
-    private const long LOC_GENERAL_LICENSES = 0x660;
-    private const long LOC_JOB_LICENSES = 0x670;
-    private const long LOC_LOCO_RESTORATION = 0x400;
-    private const long LOC_LOCO_NB_JOBS = 0x600;
-    private const long LOC_GARAGE_UNLOCKED = 0x690;
+    public const long LOC_RELIC_PARTS = 0x620;
+    public const long LOC_RELIC_PAINTED = 0x630;
+    public const long LOC_GENERAL_LICENSES = 0x660;
+    public const long LOC_JOB_LICENSES = 0x670;
+    public const long LOC_LOCO_RESTORATION = 0x400;
+    public const long LOC_LOCO_NB_JOBS = 0x600;
+    public const long LOC_GARAGE_UNLOCKED = 0x690;
     
     /// <summary>
     /// Array of station name in the order we use for AP (which is alphabetical order)

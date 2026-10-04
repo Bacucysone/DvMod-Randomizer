@@ -61,6 +61,7 @@ public class RandoSaveData {
     public int[] GeneralLicensePrices;
     public int[] JobLicensePrices;
     public int DemoLocosFinished;
+    public string Guid;
 
     public static RandoSaveData CreateSaveData(DVConfig config) => new() {
         Version = Main.VERSION,
@@ -68,7 +69,7 @@ public class RandoSaveData {
         HiddenGarages = new bool[4],
         JobLocations = new bool[12],
         GeneralLocations = new bool[13],
-        LocoLocations = Enumerable.Repeat(!config.RelicSpawnChecks, 75).ToArray(),// If there are no checks on demo loco, treat it as they all have been collected
+        LocoLocations = Enumerable.Repeat(!config.RelicSpawnChecks, 75).ToArray(),// If there are no checks on demo loco, treat it as if they all have been collected
         ReceivedRelics = new int[6],
         Index = 0,
         Freights = new int[20],
@@ -80,6 +81,7 @@ public class RandoSaveData {
         Tokens = 0,
         GeneralLicensePrices = new int[RandoCommonData.APGeneralLicenses.Length],
         JobLicensePrices = new int[RandoCommonData.APJobLicenses.Length],
-        DemoLocosFinished = 0
+        DemoLocosFinished = 0,
+        Guid = null
     };
 }
