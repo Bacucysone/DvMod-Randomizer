@@ -13,8 +13,9 @@ public class LocoRestorationControllerPatch {
     /// </summary>
     [HarmonyPostfix, HarmonyPatch("Start")]
     public static IEnumerator Start_Postfix(IEnumerator originalMethod, LocoRestorationController __instance) {
-        yield return originalMethod; 
+        yield return originalMethod; // We try to delete the car one frame after it has been spawned (too early and the game crashed), hence the strange postfix
         if (!Main.IsConnected) yield break;
+        if (Main.Player.Config.VanillaDemoLoco is DemoLocoBehaviour.Vanilla) yield break;
         if (__instance.State >= LocoRestorationController.RestorationState.S4_OnDestinationTrack) yield break;
         __instance.loco.OnDestroyCar -= __instance.OnUnexpectedDestroy;
         SingletonBehaviour<CarSpawner>.Instance.DeleteCar(__instance.loco);
@@ -30,6 +31,7 @@ public class LocoRestorationControllerPatch {
     public static IEnumerator DeliverPartCoro_Postfix(IEnumerator originalMethod, TrainCar ___loco, LocoRestorationController __instance) {
         yield return originalMethod;
         if (!Main.IsConnected) yield break;
+        if (!Main.Player.Config.MuseumChecks) yield break;
         Main.Player.UnlockCheck(RandoCommonData.GetRelicPartsToMuseumIdFromLoco(___loco.carType));
         if (Main.Player.CanFinishRelic(___loco.carType)) yield break;
         __instance.installPartsModule.ThingBought -= __instance.OnInstallPartsPaid;
@@ -41,8 +43,9 @@ public class LocoRestorationControllerPatch {
     /// </summary>
     [HarmonyPostfix, HarmonyPatch("SetupListenersForPaintJob")]
     public static void SetupListenersForPaintJob_Postfix(TrainCar ___loco, bool on) {
-        if (Main.IsConnected && !on) {
-            Main.Player.UnlockCheck(RandoCommonData.GetRelicPaintedIdFromLoco(___loco.carType));
+        if (Main.IsConnected  && !on) {
+            if (Main.Player.Config.MuseumChecks)
+                Main.Player.UnlockCheck(RandoCommonData.GetRelicPaintedIdFromLoco(___loco.carType));
             Main.Player.CheckVictoryDemoLocos();
         }
     }

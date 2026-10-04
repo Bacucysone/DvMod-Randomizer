@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace DvMod.Randomizer;
 
@@ -11,6 +12,10 @@ public enum VictoryCond {
     DemoLocos = 1
 }
 
+public enum DemoLocoBehaviour {
+    Vanilla = 0,
+    APGated = 1
+}
 /// <summary>
 /// Class representing the configuration of the game
 /// </summary>
@@ -30,6 +35,9 @@ public class DVConfig {
     public int RandomiseLicensePricesMax;
     public int VictoryDemoLoco;
     public VictoryCond VictoryCondition;
+    public DemoLocoBehaviour VanillaDemoLoco;
+    public bool RelicSpawnChecks;
+    public bool MuseumChecks;
 }
 /// <summary>
 /// Data class containing all elements for the rando-player
@@ -60,7 +68,7 @@ public class RandoSaveData {
         HiddenGarages = new bool[4],
         JobLocations = new bool[12],
         GeneralLocations = new bool[13],
-        LocoLocations = new bool[57],
+        LocoLocations = Enumerable.Repeat(!config.RelicSpawnChecks, 75).ToArray(),// If there are no checks on demo loco, treat it as they all have been collected
         ReceivedRelics = new int[6],
         Index = 0,
         Freights = new int[20],
