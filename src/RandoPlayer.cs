@@ -88,25 +88,41 @@ public class RandoPlayer
         /// </summary>
         private readonly int _idx;
 
-        private static Sprite _apSprite;
+        private static Sprite CanCheck;
+        private static Sprite CannotCheck;
 
-        private SpriteRenderer _positionSign;
+        private GameObject _positionSign;
 
         private Vector3 _swayDirection = Vector3.up;
         private float _swayDistance = 0f;
 
+        private static List<DemoLocoListener> Instances = [];
+
+        public static void ReloadAllSigns() => Instances.ForEach(listener => listener.LoadSign());
+
         private void LoadSign() {
-            Object.Destroy(_positionSign?.gameObject); 
-            GameObject go = new ();
-            _positionSign = go.AddComponent<SpriteRenderer>();
-            _positionSign.sprite = _apSprite;
-            _positionSign.transform.SetAbsolutePosition(_locoPosition + new Vector3(0,1,0));
-            _positionSign.transform.localScale = new Vector3(0.05f, 0.05f, 1);
+            string stationNeeded = RandoCommonData.GetStationFromLocoLocation(_idx);
+            bool stationOk = Main.Player.GotStationLicense(stationNeeded);
+            bool museumOk = SingletonBehaviour<LicenseManager>.Instance.IsGeneralLicenseAcquired(GeneralLicenseType.MuseumCitySouth.ToV2());
+            
+            if (_positionSign != null)
+                Object.Destroy(_positionSign); 
+            _positionSign = new GameObject();
+            SpriteRenderer renderer = _positionSign.AddComponent<SpriteRenderer>();
+            renderer.sprite = stationOk && museumOk ? CanCheck : CannotCheck;
+            renderer.transform.SetAbsolutePosition(_locoPosition + new Vector3(0,1,0));
+            renderer.transform.localScale = new Vector3(0.05f, 0.05f, 1);
         }
         static DemoLocoListener() {
-            Texture2D texture = new(1,1);
-            texture.LoadImage(File.ReadAllBytes(Path.Combine(Main.Mod.Path, "icons", "color-icon.png")));
-            _apSprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
+            Texture2D texture1 = new(1,1);
+            texture1.LoadImage(File.ReadAllBytes(Path.Combine(Main.Mod.Path, "icons", "color-icon.png")));
+            CanCheck = Sprite.Create(texture1, new Rect(0, 0, texture1.width, texture1.height), new Vector2(0.5f, 0.5f));
+            Texture2D texture2 = new(1, 1);
+            texture2.LoadImage(File.ReadAllBytes(Path.Combine(Main.Mod.Path, "icons", "blue-icon.png")));
+            CannotCheck = Sprite.Create(texture2, new Rect(0, 0, texture2.width, texture2.height), new Vector2(0.5f, 0.5f));
+            SingletonBehaviour<LicenseManager>.Instance.LicenseAcquired += license => {
+                if (license.v1 == GeneralLicenseType.MuseumCitySouth) ReloadAllSigns();
+            };
         }
 
         public DemoLocoListener(int idx, float spatialThreshold = 5f, float timeThreshold = 20f) {
@@ -115,6 +131,8 @@ public class RandoPlayer
             (_locoPosition, _checkId) = RandoCommonData.GetInfoRestorationFromLocoLocationOrder(idx);
             _lastTime = 0f;
             _idx = idx;
+            
+            Instances.Add(this);
 
             WorldStreamingInit.LoadingFinished += LoadSign;
             TerrainGrid.TerrainDataLoaded += (data, coords) => LoadSign();
@@ -142,6 +160,8 @@ public class RandoPlayer
                 Main.Player.CheckRestoLoco(_idx);
                 Main.NotifyPlayer($"You found a {item.ItemDisplayName} for {item.Player.Name} on the ground!");
                 Main.Player.UpdateEvent -= CheckPosition;
+                Object.Destroy(_positionSign);
+                Instances.Remove(this);
             } else {
                 _lastTime = Time.time;
                 if (stationOk)
@@ -536,14 +556,16 @@ public class RandoPlayer
     /// <returns>The number of progressive relic loco acquired so far (should only be 1 or 2)</returns>
     public int AddRelic(long id) =>
         ++Data.ReceivedRelics[RandoCommonData.GetOrderFromRelicId(id)];
-    
+
     /// <summary>
     /// Register when a station license has been acquired
     /// </summary>
     /// <param name="station">The station name of the acquired license</param>
-    public void AcquireLicense(string station) =>
+    public void AcquireLicense(string station) {
         Data.StationLicenses[RandoCommonData.GetOrderFromStationName(station)] = true;
-    
+        DemoLocoListener.ReloadAllSigns();
+    }
+
     /// <summary>
     /// Change internal state when finishing a job with a specific loco. If applicable, notify the AP server of a new location
     /// check
