@@ -38,6 +38,7 @@ public class DVConfig {
     public DemoLocoBehaviour VanillaDemoLoco;
     public bool RelicSpawnChecks;
     public bool MuseumChecks;
+    public bool HintsLicenseManager;
 }
 /// <summary>
 /// Data class containing all elements for the rando-player

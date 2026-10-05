@@ -1,3 +1,7 @@
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Archipelago.MultiClient.Net.Enums;
+using Archipelago.MultiClient.Net.Models;
 using DV.Localization;
 using DV.ServicePenalty.UI;
 using DV.Utils;
@@ -22,7 +26,15 @@ public class CareerManagerLicensesScreen_LicenseEntryPatch {
             (__instance.JobLicense.requiredJobLicense == null ||
              SingletonBehaviour<LicenseManager>.Instance.IsJobLicenseAcquired(__instance.JobLicense
                  .requiredJobLicense));
-        __instance.name.text = "AP Item";
+        long locationId = RandoCommonData.GetIdFromJobLicense(__instance.JobLicense);
+        if (locationId >= 0 && Main.Player.Config.HintsLicenseManager) {
+            Task<Dictionary<long, ScoutedItemInfo>> hintTask =
+                Main.Player.Session.Locations.ScoutLocationsAsync(HintCreationPolicy.CreateAndAnnounceOnce, locationId);
+            hintTask.Wait();
+            ScoutedItemInfo hintInfo = hintTask.Result[locationId];
+            __instance.name.text = hintInfo.ItemDisplayName + " (" + hintInfo.Player.Alias + ")";
+        } else
+            __instance.name.text = "AP Item";
         if (!__instance.IsAcquired){
             __instance.status.text = "$" + __instance.JobLicense.price.ToString("N2", LocalizationAPI.CC);
         } else 
@@ -41,7 +53,15 @@ public class CareerManagerLicensesScreen_LicenseEntryPatch {
                 (__instance.GeneralLicense.requiredJobLicense == null ||
                     SingletonBehaviour<LicenseManager>.Instance.IsJobLicenseAcquired(__instance.GeneralLicense
                  .requiredJobLicense));
-        __instance.name.text = "AP Item";
+        long locationId = RandoCommonData.GetIdFromGeneralLicense(__instance.GeneralLicense);
+        if (locationId >= 0 && Main.Player.Config.HintsLicenseManager) {
+            Task<Dictionary<long, ScoutedItemInfo>> hintTask =
+                Main.Player.Session.Locations.ScoutLocationsAsync(HintCreationPolicy.CreateAndAnnounceOnce, locationId);
+            hintTask.Wait();
+            ScoutedItemInfo hintInfo = hintTask.Result[locationId];
+            __instance.name.text = hintInfo.ItemDisplayName + " (" + hintInfo.Player.Alias + ")";
+        } else
+            __instance.name.text = "AP Item";
         if (!__instance.IsAcquired){
             __instance.status.text = "$" + __instance.GeneralLicense.price.ToString("N2", LocalizationAPI.CC);
         } else 
