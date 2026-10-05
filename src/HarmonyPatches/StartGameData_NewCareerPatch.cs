@@ -18,7 +18,7 @@ public class StartGameData_NewCareerPatch {
     
     [HarmonyPrefix, HarmonyPatch(nameof(StartGameData_NewCareer.PrepareNewSaveData))]
     public static bool PrepareNewSaveData_Prefix(ref SaveGameData saveGameData, IGameSession session, IDifficulty difficultyParams) {
-        if (!Main.Settings!.CreateAPSave) return true;
+        if (!Main.Settings.CreateAPSave) return true;
         try {
             Main.Connect(null);
         } catch (TimeoutException) {
@@ -42,6 +42,7 @@ public class StartGameData_NewCareerPatch {
         saveGameData.SetInt("Starting_items", 0);
         session.GameData.SetBool("Difficulty_picked", value: true);
         Main.Player.InitGame();
+        Main.Settings.CreateAPSave = false;
         return false;
     }
 }

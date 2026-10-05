@@ -70,7 +70,7 @@ public class RandoSaveData {
         HiddenGarages = new bool[4],
         JobLocations = new bool[12],
         GeneralLocations = new bool[13],
-        LocoLocations = Enumerable.Repeat(!config.RelicSpawnChecks, 75).ToArray(),// If there are no checks on demo loco, treat it as if they all have been collected
+        LocoLocations = Enumerable.Repeat(!config.RelicSpawnChecks, 57).ToArray(),// If there are no checks on demo loco, treat it as if they all have been collected
         ReceivedRelics = new int[6],
         Index = 0,
         Freights = new int[20],

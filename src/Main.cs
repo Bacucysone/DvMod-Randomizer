@@ -22,7 +22,7 @@ public class Settings : UnityModManager.ModSettings, IDrawable {
 }
 
 public class Main {
-    public const int VERSION = 2;
+    public const int VERSION = 3;
     public static Settings Settings;
     public static UnityModManager.ModEntry Mod;
     // ReSharper disable once InconsistentNaming
