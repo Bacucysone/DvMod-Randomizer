@@ -12,10 +12,13 @@ namespace DvMod.Randomizer.HarmonyPatches;
 public class LevelInfoPatch {
     
     [HarmonyPostfix, HarmonyPatch(nameof(LevelInfo.NewCareerSpawnPosition), MethodType.Getter)]
-    public static void NewCareerSpawnPositionGet_Postfix(ref Vector3 __result) => __result = 
-        FastTravelDestination.ActiveDestinations
-            .OfType<StationFastTravelDestination>()
-            .First(sDest => sDest.StationController.stationInfo.YardID == Main.Player.SlotData.StartStation)
-            .playerTeleportAnchor
-            .position;
+    public static void NewCareerSpawnPositionGet_Postfix(ref Vector3 __result) {
+        if (!Main.IsConnected) return;
+        __result =
+            FastTravelDestination.ActiveDestinations
+                .OfType<StationFastTravelDestination>()
+                .First(sDest => sDest.StationController.stationInfo.YardID == Main.Player.SlotData.StartStation)
+                .playerTeleportAnchor
+                .position;
+    }
 }
