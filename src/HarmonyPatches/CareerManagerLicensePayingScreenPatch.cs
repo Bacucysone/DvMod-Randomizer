@@ -15,20 +15,10 @@ public class CareerManagerLicensePayingScreenPatch {
     /// Change the name of the license you're trying to buy to the name of the AP item
     /// </summary>
     [HarmonyPostfix, HarmonyPatch(nameof(CareerManagerLicensePayingScreen.Activate))]
-    public static void Activate_Postfix(JobLicenseType_v2 ___jobLicenseToBuy, GeneralLicenseType_v2 ___generalLicenseToBuy, TextMeshPro ___licenseNameText) {
-        string item_name;
-        bool hint = Main.Player.Config.HintsOnLicenseManager;
+    public static void Activate_Postfix(CareerManagerLicensePayingScreen __instance) {
         if (!Main.IsConnected) return;
-        
-        if (___generalLicenseToBuy != null) {
-            long id = RandoCommonData.GetIdFromGeneralLicense(___generalLicenseToBuy);
-            item_name = Main.Player.GetItemNameFromLocationId(id,hint);
-            ___licenseNameText.text = item_name;
-        } else {
-            long id = RandoCommonData.GetIdFromJobLicense(___jobLicenseToBuy);
-            item_name = Main.Player.GetItemNameFromLocationId(id,hint);
-            ___licenseNameText.text = item_name;
-        }
+        __instance.licenseNameText.text = __instance.IsGeneralLicense ? RandoCommonData.LicenseScreenName(__instance.generalLicenseToBuy) :
+                                  RandoCommonData.LicenseScreenName(__instance.jobLicenseToBuy);
     }
 
     /// <summary>

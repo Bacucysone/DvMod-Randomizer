@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Archipelago.MultiClient.Net.Enums;
 using Archipelago.MultiClient.Net.Models;
 using DV.Booklets;
@@ -129,6 +130,14 @@ public static class RandoCommonData {
         "SunVisor",
         "UniversalControlStand"]; */
 
+    private static Dictionary<long, string> LicenseHintsArray {
+        get {
+            if (Main.Player.Data.LicenceHintsNames == null)
+                ScoutLicensesLocations();
+            return Main.Player.Data.LicenceHintsNames;
+        }
+    }
+
     #region Mappings DV Items/Events -> long id Locations
     
     //Constant offsets used by Archipelago for locations
@@ -243,6 +252,7 @@ public static class RandoCommonData {
         public string Name { get; } = n;
         public Vector3 Position { get; } = new(x, y, z);
     }
+    
     /// <summary>
     /// Data list of all possible demonstrator locomotive spawn points, in the order used by archipelago
     /// </summary>
@@ -305,6 +315,7 @@ public static class RandoCommonData {
         new("CME Coal Mine", 15552.81f, 181.5f, 11033.37f),
         new("MF East of roundhouse 1", 2267.709f, 159.193f, 10657.35f)
     ];
+    
     /// <summary>
     /// Compute the information related to a demonstrator locomotive spawn locations
     /// </summary>
@@ -312,6 +323,7 @@ public static class RandoCommonData {
     /// <returns>A tuple (position in world, AP location check id)</returns>
     public static (Vector3, long) GetInfoRestorationFromLocoLocationOrder(int idx) =>
         (AddressToLocoRestorationLocation[idx].Position, idx + LOC_LOCO_RESTORATION);
+    
     /// <summary>
     /// Helper function to get the station name corresponding to a given spawn point
     /// </summary>
@@ -322,6 +334,7 @@ public static class RandoCommonData {
         int n = (sPoint.Name[2] == '/' || sPoint.Name[2] == ' ')?2:3;
         return sPoint.Name.Substring(0, n);
     }
+    
     /// <summary>
     /// Compute and returns the AP location id related to a job finished
     /// </summary>
@@ -335,6 +348,7 @@ public static class RandoCommonData {
             check += 0x2000;
         return check + 0x100 * GetOrderFromStationName(station) + nb;
     }
+    
     /// <summary>
     /// List of the buyable job licenses in the order used by archipelago
     /// </summary>
@@ -352,12 +366,14 @@ public static class RandoCommonData {
         JobLicenses.Military3,
         JobLicenses.FreightHaul, 
     ];
+    
     /// <summary>
     /// Reverse mapping order &lt;- job license
     /// </summary>
     /// <param name="jobLicense">The requested job license</param>
     /// <returns>The corresponding order index</returns>
     public static int GetOrderFromJobLicense(JobLicenseType_v2 jobLicense) => Array.IndexOf(JobLocationsOrder, jobLicense.v1);
+    
     /// <summary>
     /// Compute AP location id corresponding to buying a given job license
     /// </summary>
@@ -367,6 +383,7 @@ public static class RandoCommonData {
         int order = GetOrderFromJobLicense(jobLicense);
         return order < 0 ? -1L : order + LOC_JOB_LICENSES;
     }
+    
     /// <summary>
     /// Compute location id corresponding to finishing enough jobs with a given locomotive
     /// </summary>
@@ -392,12 +409,14 @@ public static class RandoCommonData {
         GeneralLicenseType.Dispatcher1,
         GeneralLicenseType.TrainDriver, 
     ];
+    
     /// <summary>
     /// Reverse mapping order &lt;- general license
     /// </summary>
     /// <param name="generalLicense">The requested general license</param>
     /// <returns>The corresponding order index</returns>
     public static int GetOrderFromGeneralLicense(GeneralLicenseType_v2 generalLicense) => Array.IndexOf(GeneralLocationsOrder, generalLicense.v1);
+    
     /// <summary>
     /// Compute AP location id corresponding to buying a given general license
     /// </summary>
@@ -406,6 +425,36 @@ public static class RandoCommonData {
     public static long GetIdFromGeneralLicense(GeneralLicenseType_v2 generalLicense) {
         int order = GetOrderFromGeneralLicense(generalLicense);
         return order < 0 ? -1L : order + LOC_GENERAL_LICENSES;
+    }
+
+    public static void ScoutLicensesLocations() {
+        List<long> futureLocationsIds = [];
+        
+        for (int i = 0; i < GeneralLocationsOrder.Length; i++) 
+            futureLocationsIds.Add(i + LOC_GENERAL_LICENSES);
+        for (int i = 0; i < JobLocationsOrder.Length; i++) 
+            futureLocationsIds.Add(i + LOC_JOB_LICENSES);
+        
+        Task<Dictionary<long, ScoutedItemInfo>> hintTask =
+            Main.Player.Session.Locations.ScoutLocationsAsync(HintCreationPolicy.CreateAndAnnounceOnce, futureLocationsIds.ToArray());
+        hintTask.Wait();
+        Dictionary<long, ScoutedItemInfo> scoutedLicenseInfo = hintTask.Result;
+        Main.Player.Data.LicenceHintsNames = scoutedLicenseInfo.Select(kv => (kv.Key, $"{kv.Value.ItemDisplayName} ({kv.Value.Player.Alias})"))
+            .ToDictionary(kv => kv.Key, kv => kv.Item2);
+    }
+
+    public static string LicenseScreenName(GeneralLicenseType_v2 generalLicense) {
+        long id = GetIdFromGeneralLicense(generalLicense);
+        return id < 0 ? null : 
+            Main.Player.Config.HintsOnLicenseManager ? LicenseHintsArray[id] :
+            "AP Item";
+    }
+        
+    public static string LicenseScreenName(JobLicenseType_v2 jobLicense) {
+        long id = GetIdFromJobLicense(jobLicense);
+        return id < 0 ? null : 
+            Main.Player.Config.HintsOnLicenseManager ? LicenseHintsArray[id] :
+            "AP Item";
     }
     
     /// <summary>

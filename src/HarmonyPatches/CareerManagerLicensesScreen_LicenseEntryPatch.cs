@@ -19,6 +19,7 @@ public class CareerManagerLicensesScreen_LicenseEntryPatch {
     public static void UpdateJobLicenseData_Postfix(CareerManagerLicensesScreen.LicenseEntry __instance) {
         if (!Main.IsConnected) return;
         __instance.IsAcquired = Main.Player.HasChecked(__instance.JobLicense);
+        
         __instance.IsObtainable = !__instance.IsAcquired && 
             (__instance.JobLicense.requiredGeneralLicense == null ||
              SingletonBehaviour<LicenseManager>.Instance.IsGeneralLicenseAcquired(__instance.JobLicense
@@ -26,18 +27,12 @@ public class CareerManagerLicensesScreen_LicenseEntryPatch {
             (__instance.JobLicense.requiredJobLicense == null ||
              SingletonBehaviour<LicenseManager>.Instance.IsJobLicenseAcquired(__instance.JobLicense
                  .requiredJobLicense));
-        long locationId = RandoCommonData.GetIdFromJobLicense(__instance.JobLicense);
-        if (locationId >= 0 && Main.Player.Config.HintsLicenseManager) {
-            Task<Dictionary<long, ScoutedItemInfo>> hintTask =
-                Main.Player.Session.Locations.ScoutLocationsAsync(HintCreationPolicy.CreateAndAnnounceOnce, locationId);
-            hintTask.Wait();
-            ScoutedItemInfo hintInfo = hintTask.Result[locationId];
-            __instance.name.text = hintInfo.ItemDisplayName + " (" + hintInfo.Player.Alias + ")";
-        } else
-            __instance.name.text = "AP Item";
-        if (!__instance.IsAcquired){
+        
+        __instance.name.text = RandoCommonData.LicenseScreenName(__instance.JobLicense);
+        
+        if (!__instance.IsAcquired)
             __instance.status.text = "$" + __instance.JobLicense.price.ToString("N2", LocalizationAPI.CC);
-        } else 
+        else 
             __instance.status.text = CareerManagerLocalization.OWNED;
         
     }
@@ -46,6 +41,7 @@ public class CareerManagerLicensesScreen_LicenseEntryPatch {
     public static void UpdateGeneralLicenseData_Postfix(CareerManagerLicensesScreen.LicenseEntry __instance) {
         if (!Main.IsConnected) return;
         __instance.IsAcquired = Main.Player.HasChecked(__instance.GeneralLicense);
+        
         __instance.IsObtainable = !__instance.IsAcquired && 
                 (__instance.GeneralLicense.requiredGeneralLicense == null ||
                     SingletonBehaviour<LicenseManager>.Instance.IsGeneralLicenseAcquired(__instance.GeneralLicense
@@ -53,18 +49,12 @@ public class CareerManagerLicensesScreen_LicenseEntryPatch {
                 (__instance.GeneralLicense.requiredJobLicense == null ||
                     SingletonBehaviour<LicenseManager>.Instance.IsJobLicenseAcquired(__instance.GeneralLicense
                  .requiredJobLicense));
-        long locationId = RandoCommonData.GetIdFromGeneralLicense(__instance.GeneralLicense);
-        if (locationId >= 0 && Main.Player.Config.HintsLicenseManager) {
-            Task<Dictionary<long, ScoutedItemInfo>> hintTask =
-                Main.Player.Session.Locations.ScoutLocationsAsync(HintCreationPolicy.CreateAndAnnounceOnce, locationId);
-            hintTask.Wait();
-            ScoutedItemInfo hintInfo = hintTask.Result[locationId];
-            __instance.name.text = hintInfo.ItemDisplayName + " (" + hintInfo.Player.Alias + ")";
-        } else
-            __instance.name.text = "AP Item";
-        if (!__instance.IsAcquired){
+        
+        __instance.name.text = RandoCommonData.LicenseScreenName(__instance.GeneralLicense);
+        
+        if (!__instance.IsAcquired)
             __instance.status.text = "$" + __instance.GeneralLicense.price.ToString("N2", LocalizationAPI.CC);
-        } else 
+        else 
             __instance.status.text = CareerManagerLocalization.OWNED;
     }
 }
