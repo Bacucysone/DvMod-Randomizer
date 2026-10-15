@@ -487,7 +487,7 @@ public static class RandoCommonData {
     /// <exception cref="ArgumentException">Thrown when the item id does not correspond to any known item, according to our local database</exception>
     public static ArchipelagoItem GetAPItem(int idx, ItemInfo item) {
         return item.ItemId switch {
-            -1 => new AP_Nothing(idx, item),
+            -1 or >= 0x1000 => new AP_Nothing(idx, item),
             1 => new AP_Money(idx, item),
             2 => new AP_DoubleToken(idx, item),
             >= 0x100 and < 0x200 => new AP_PhysicalItem(idx, item),
