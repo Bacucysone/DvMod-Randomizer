@@ -556,9 +556,9 @@ public static class RandoCommonData {
         [JobLicenses.FreightHaul], 
         [JobLicenses.LogisticalHaul], 
         [JobLicenses.Shunting], 
-        [JobLicenses.Fragile], 
+        [], 
         [JobLicenses.TrainLength1, JobLicenses.TrainLength2], 
-        [JobLicenses.Hazmat1, JobLicenses.Hazmat2, JobLicenses.Hazmat3], 
+        [JobLicenses.Fragile, JobLicenses.Hazmat1, JobLicenses.Hazmat2, JobLicenses.Hazmat3], 
         [JobLicenses.Military1, JobLicenses.Military2, JobLicenses.Military3]
     ];
     /// <summary>
