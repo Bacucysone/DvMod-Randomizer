@@ -766,5 +766,9 @@ public class RandoPlayer
         Session.SetGoalAchieved();
         Data.AlreadyWon = true;
     }
+
+    public void UnlockVoucher(int order) => Data.Vouchers[order] = true;
+
+    public bool HasUnlockedVoucher(int order) => Data.Vouchers[order];
 }
 #endregion

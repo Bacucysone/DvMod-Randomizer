@@ -471,6 +471,7 @@ public static class RandoCommonData {
     #region Mappings long id Items -> DV ITems/Events
     
     // Constant offsets used for AP item id
+    public const long VOUCHERS = 0x10;
     public const long ITEMS = 0x100;
     public const long SLICENSES = 0x200;
     public const long GLICENSES = 0x300;
@@ -490,6 +491,7 @@ public static class RandoCommonData {
             -1 or >= 0x1000 => new AP_Nothing(idx, item),
             1 => new AP_Money(idx, item),
             2 => new AP_DoubleToken(idx, item),
+            >= 0x10 and < 0x20 => new AP_Voucher(idx, item),
             >= 0x100 and < 0x200 => new AP_PhysicalItem(idx, item),
             >= 0x200 and < 0x300 => new AP_StationLicense(idx, item),
             >= 0x300 and < 0x310 => new AP_GeneralLicense(idx, item),
@@ -575,7 +577,22 @@ public static class RandoCommonData {
             return [];
         }
     }
+    
+    private static readonly ResourceType[] ResourceTypeOrder = [
+        ResourceType.Fuel,
+        ResourceType.Sand,
+        ResourceType.Oil,
+        ResourceType.Water,
+        ResourceType.Coal,
+        ResourceType.ElectricCharge,
+        ResourceType.Wheels_DMG,
+        ResourceType.MechanicalPowertrain_DMG,
+        ResourceType.ElectricalPowertrain_DMG
+    ];
 
+    public static int GetOrderFromResourceType(ResourceType resource) => Array.IndexOf(ResourceTypeOrder, resource);
+
+    public static int GetVoucherOrderFromId(long id) => (int)(id - VOUCHERS);
     /// <summary>
     /// Lists of licenses
     /// </summary>
@@ -610,6 +627,7 @@ public static class RandoCommonData {
         JobLicenses.Military3
     ];
 
+    
     /// <summary>
     /// List of physical item prefab names in the order used by archipelago
     /// </summary>

@@ -278,3 +278,12 @@ public class AP_CrewVehicle(int idx, ItemInfo item) : ArchipelagoItem(idx, item)
     }
     public override bool IsObtainable => !Main.Player.HasUnlocked(RandoCommonData.GetGarageFromId(Id));
 }
+
+public class AP_Voucher(int idx, ItemInfo item) : ArchipelagoItem(idx, item) {
+    protected override bool AcquireUnconditional() {
+        Main.Player.UnlockVoucher(RandoCommonData.GetVoucherOrderFromId(Id));
+        return true;
+    }
+
+    public override bool IsObtainable => !Main.Player.HasUnlockedVoucher(RandoCommonData.GetVoucherOrderFromId(Id));
+}

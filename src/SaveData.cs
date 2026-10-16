@@ -63,6 +63,7 @@ public class RandoSaveData {
     public int DemoLocosFinished;
     public string Guid;
     public Dictionary<long, string> LicenceHintsNames;
+    public bool[] Vouchers;
 
     public static RandoSaveData CreateSaveData(DVConfig config) => new() {
         Version = Main.VERSION,
@@ -84,6 +85,7 @@ public class RandoSaveData {
         JobLicensePrices = new int[RandoCommonData.APJobLicenses.Length],
         DemoLocosFinished = 0,
         Guid = null,
-        LicenceHintsNames = null
+        LicenceHintsNames = null,
+        Vouchers = new bool[9]
     };
 }
