@@ -86,6 +86,6 @@ public class RandoSaveData {
         DemoLocosFinished = 0,
         Guid = null,
         LicenceHintsNames = null,
-        Vouchers = new bool[9]
+        Vouchers = new bool[10]
     };
 }

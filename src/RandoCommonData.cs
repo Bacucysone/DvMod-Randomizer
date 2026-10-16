@@ -587,7 +587,8 @@ public static class RandoCommonData {
         ResourceType.ElectricCharge,
         ResourceType.Wheels_DMG,
         ResourceType.MechanicalPowertrain_DMG,
-        ResourceType.ElectricalPowertrain_DMG
+        ResourceType.ElectricalPowertrain_DMG,
+        ResourceType.Car_DMG
     ];
 
     public static int GetOrderFromResourceType(ResourceType resource) => Array.IndexOf(ResourceTypeOrder, resource);
