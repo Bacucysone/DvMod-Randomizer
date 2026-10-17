@@ -1,10 +1,17 @@
-# Archipelago Setup
+# Archipelago Setup (outdated)
 This document contains some information about the setup of Derail Valley for Archipelago. It is best completed with the Archipelago official docs.
 
 ## Before playing the game
 ### Creating the options yaml file
 The options file contains all of what you (the player) want to have in the game. Here is the list of all the possible options and some explanations if needed.
 ___
+#### End goal 
+- **victory_condition**: There are currently 2 victory conditions
+  -  `number_of_jobs` = Finish enough jobs in enough stations
+  -  `demo_loco` = Finish restoring enough demonstrator locomotives
+- **nb_jobs**: _Only relevant if you chose `number_of_jobs` as victory condition._ Number of completed jobs to finish one station.
+- **nb_stations**: _Only relevant if you chose `number_of_jobs` as victory condition._ Number of stations to finish to win the game.
+- **nb_demo_locos**: _Only relevant if you chose `demo_loco` as victory_condition._ Number of demonstrator locomotives to restore to win the game.
 - **Dispatcher license**: 3 possibilities
   - From Start: you start with the dispatcher license in your starting items
   - Non Randomized: the dispatcher license will be at its vanilla location (can be bought for $10000 in the career manager with no pre-requisites)
@@ -42,9 +49,10 @@ For both of these choices, if the starting loco is a steam one (S060 or S282), y
 
 - **Hints for station license**: Choose whether the items unlocked for doing jobs in a given station appear on the corresponding license
 
-- **Death Link**: $$\color{red}NOT PROPERLY WORKING$$ In a multiworld, you can choose to link the death of the players (meaning that if one player dies in its game, all the players who activated death link will also die). In Derail Valley, that consists in derailing. This option does nothing you are the only one who activated deathlink in a multiworld.
+- **Death Link**: In a multiworld, you can choose to link the death of the players (meaning that if one player dies in its game, all the players who activated death link will also die). In Derail Valley, that consists in derailing. This option does nothing you are the only one who activated deathlink in a multiworld.
 
 - **Double tokens**: The proportion of double job tokens that will be put in the item pool. It ranges from 0 (no tokens) to 100 (all filler items will be tokens).
+
 ___
 ### Setup the multiworld
 When all the yaml files of the players are ready, one player has to generate the multiworld. To do so, if a Derail Valley yaml is concerned, you will need the .apworld file (available in the relases section).
@@ -56,10 +64,10 @@ When the multiworld is generated, the game is ready.
 ### Hosting the multiworld
 Derail Valley needs nothing in particular
 ### Derail Valley difficulty
-You can play with any difficulty settings as you want. It is recommended to put the time to sleep to "can always sleep", as you may need to sleep regularly to refresh jobs and locos. If you want to always be progressing, it is also recommended to put the station teleportation at least on (either free or not), as when going from station A to station B for a job, you may not have the license for station B so you may want to teleport somewhere else (as station A for example). This is not required as you can always take jobs from station B and still earn the money rewards, you will not earn Archipelago items and Victory progression though.
+You can play with any difficulty settings as you want. It is strongly recommended to put the station teleportation at least on (either free or not), as when going from station A to station B for a job, you may not have the license for station B so you may want to teleport somewhere else (as station A for example). This is not required as you can always take jobs from station B and still earn the money rewards, you will not earn Archipelago items and Victory progression though.
 ### Starting the game
-When the game starts, the mod panel opens. You will need to set the informations of your multiserver in the randomizer option panel: address of the server (usually localhost if you host locally, or archipelago.gg), the port, your slot name (the one you put in the option yaml) and your password if you chose any. The first time, you will also have to press the "Create a new AP Save on New Career". You will then need to start a new career, you can choose the name and the difficulty, and you can skip tutorial. To prevent progress not correctly recorded, if the game cannot connect to the Archipelago server, the loading will stop and you will go back to main menu. If you manage to load into the game and start playing, that should mean that everything is set correctly. The option to Create a new AP Save will automatically be turned off when the first loading is successful, so you will have to check it again if you want to play another game.
+When the game starts, the mod panel opens. You will need to set the information of your multiserver in the randomizer option panel: address of the server (usually localhost if you host locally, or archipelago.gg), the port, your slot name (the one you put in the option yaml) and your password if you chose any. The first time, you will also have to press the "Create a new AP Save on New Career". You will then need to start a new career, you can choose the name and the difficulty, and you must skip tutorial. To prevent progress not correctly recorded, if the game cannot connect to the Archipelago server, the loading will stop and you will go back to main menu. If you manage to load into the game and start playing, that should mean that everything is set correctly. The option to Create a new AP Save will automatically be turned off when the first loading is successful, so you will have to check it again if you want to play another game.
 ### While playing
 Everything, between checking locations and getting items should be automatic through the mod, you just have to play. To enter the different commands of Archipelago (!hint, !collect, !release, etc...) you can either connect through a text client, or use the integrated developer terminal of Derail Valley (default hotkey `\``)
 ### Continuing a save
-To continue a save, you just have to continue the save you have created the first time. Connection information are stored in the file, and they will be used by default. If the information have changed (if you want to host your game on archipelago.gg, your port may change), put the correct information in the mod options, and press the "Force the use of provided information". When spawning in the game, you will then receive all the items that were sent to you when you were not playing, and you can resume playing as usual.
+To continue a save, you just have to continue the save you have created the first time. Server information will be saved in the mod settings panel, so if you are playing only one archipelago game, you do not need to change credentials (server address, port, slot name and password). When spawning in the game, you will then receive all the items that were sent to you when you were not playing, and you can resume playing as usual.

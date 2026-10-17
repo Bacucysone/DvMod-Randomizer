@@ -1,4 +1,4 @@
-# Locations and items of Derail Valley
+# Locations and items of Derail Valley (outdated)
 Here is the complete list of locations and items possible in this version of AP Derail Valley. The actual list of locations and items in your playthrough depends on the options you have chosen in your yaml
 ## Victory condition
 Every Archipelago framework need a victory condition. For Derail Valley, you have to finish a specified number of station, and finishing a station means finishing enough jobs in this station. The usefulness of the victory depends on what you want to do, and the configuration of the host during generation. You can choose to activate certain commands (!release or !collect) only when the player has completed their goal. But you can also choose to completely disregard this aspect and just play the game as you wish
