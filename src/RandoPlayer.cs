@@ -561,7 +561,11 @@ public class RandoPlayer
         for (int i = 0; i < 20; i++) {
             int currRem = Data.Config.VictoryThreshold - (Data.Shunts[i] + Data.Freights[i]);
             if (currRem <= 0) stationFinished++;
-            if (i == stOrder) toReturn = Math.Max(0, currRem);
+            if (i == stOrder) {
+                if (currRem == 0)
+                    UnlockCheck(RandoCommonData.GetVictoryIdFromStationOrder(stOrder));
+                toReturn = Math.Max(0, currRem);
+            }
         }
 
         if (stationFinished < Data.Config.Victory) return toReturn;

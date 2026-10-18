@@ -148,6 +148,7 @@ public static class RandoCommonData {
     public const long LOC_LOCO_RESTORATION = 0x400;
     public const long LOC_LOCO_NB_JOBS = 0x600;
     public const long LOC_GARAGE_UNLOCKED = 0x690;
+    public const long LOC_VICTORY_STATION = 0x1000;
     
     /// <summary>
     /// Array of station name in the order we use for AP (which is alphabetical order)
@@ -334,6 +335,8 @@ public static class RandoCommonData {
         int n = (sPoint.Name[2] == '/' || sPoint.Name[2] == ' ')?2:3;
         return sPoint.Name.Substring(0, n);
     }
+
+    public static long GetVictoryIdFromStationOrder(int order) => LOC_VICTORY_STATION + order;
     
     /// <summary>
     /// Compute and returns the AP location id related to a job finished
