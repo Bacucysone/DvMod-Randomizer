@@ -1,24 +1,30 @@
 using Archipelago.MultiClient.Net.BounceFeatures.DeathLink;
 using HarmonyLib;
+using UnityEngine;
+using UnityEngine.UI;
 
 namespace DvMod.Randomizer;
 /// <summary>
 /// Allows for deathlink (when activated, when a death occurs somewhere in AP multiworld, a deathlink is sent to all registered players)
 /// In case of Derail Valley, "death" is derailing
 /// </summary>
-[HarmonyPatch(typeof(PlayerManager), nameof(PlayerManager.SetCar))]
+[HarmonyPatch(typeof(TrainCar))]
 public class DeathLinkPatch {
-    private static void SendDeathLink(TrainCar _) {
-        Main.Player.deathLinkService!.SendDeathLink(new(Main.Player.Session.Players.ActivePlayer.Name, "derailed"));
+    private static float LastDeathlink = 0f; 
+
+    public static void Derail(DeathLink _) {
+        LastDeathlink = Time.time;
+        (PlayerManager.Car ?? PlayerManager.LastLoco)?.DerailAllBogies("due to deathlink");
     }
-    public static void Derail(DeathLink _) => PlayerManager.Car?.Derail();
-    public static void Prefix(TrainCar newCar) {
-        if (!Main.IsConnected) return;
-        if (newCar == PlayerManager.Car) return;
-        if (!Main.Player.Config.DeathLink) return;
-        if (newCar != null)
-            newCar.OnDerailed += SendDeathLink;
-        if (PlayerManager.Car != null)
-            PlayerManager.Car.OnDerailed -= SendDeathLink;
+    
+    [HarmonyPrefix, HarmonyPatch(nameof(TrainCar.Derail))]
+    public static void Derail_Prefix(TrainCar __instance) {
+        if (__instance.derailed || !Main.IsConnected) return;
+        if (__instance != PlayerManager.Car && __instance != PlayerManager.LastLoco) return;
+        if (Time.time - LastDeathlink <= 15f) return;
+        LastDeathlink = Time.time;
+        string playerName = Main.Player.Session.Players.ActivePlayer.Name;
+        Main.Player.deathLinkService.SendDeathLink(new DeathLink(playerName, playerName + " derailed"));
+        
     }
 }
