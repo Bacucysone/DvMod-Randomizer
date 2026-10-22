@@ -931,9 +931,9 @@ public static class RandoCommonData {
     /// <returns>The corresponding index order, or -1 if the garage is not a valid crew vehicle garage</returns>
     public static int GetOrderFromGarage(GarageType_v2 garage) =>
         garage.v1 switch {
-            Garage.Bob => 0,
+            Garage.DE6_Slug => 0,
             Garage.Caboose => 1,
-            Garage.DE6_Slug => 2,
+            Garage.Bob => 2,
             Garage.DM1U => 3,
             _ => -1
         };
