@@ -1,28 +1,17 @@
-param (
-	[switch]$NoArchive,
-	[string]$OutputDirectory = $PSScriptRoot
-)
+$ReleaseFolder = "release\"
+dotnet build
+Copy-Item bin\Debug\net48\Randomizer.dll "D:\SteamLibrary\steamapps\common\Derail Valley/Mods/Randomizer"
 
-Set-Location "$PSScriptRoot"
-$FilesToInclude = "Info.json","build/*","LICENSE","icons/"
-
-$modInfo = Get-Content -Raw -Path "Info.json" | ConvertFrom-Json
-$modId = $modInfo.Id
-$modVersion = $modInfo.Version
-
-$DistDir = "$OutputDirectory/dist"
-if ($NoArchive) {
-	$ZipWorkDir = "$OutputDirectory"
+If (Test-Path -Path $ReleaseFolder) {
+    Remove-Item $ReleaseFolder\*
 } else {
-	$ZipWorkDir = "$DistDir/tmp"
+    mkdir $ReleaseFolder
 }
-$ZipOutDir = "$ZipWorkDir/$modId"
 
-New-Item "$ZipOutDir" -ItemType Directory -Force
-Copy-Item -Force -Path $FilesToInclude -Destination "$ZipOutDir" -Recurse
-
-if (!$NoArchive)
-{
-	$FILE_NAME = "$DistDir/${modId}_v$modVersion.zip"
-	Compress-Archive -Update -CompressionLevel Fastest -Path "$ZipOutDir" -DestinationPath "$FILE_NAME"
-}
+Compress-Archive bin\Debug\net48\Randomizer.dll , icons\ , Info.json , repository.json $ReleaseFolder\Randomizer.zip
+Set-Location Archipelago
+env\Scripts\Activate.ps1
+python Launcher.py "Build APWorlds" -- "Derail Valley" --skip_open_folder
+python Launcher.py "Generate Template Options" -- --skip_open_folder
+Copy-Item build\apworlds\derail_valley.apworld ..\$ReleaseFolder
+Copy-Item "Players\Templates\Derail Valley.yaml" ..\$ReleaseFolder
